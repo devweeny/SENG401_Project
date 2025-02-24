@@ -6,18 +6,42 @@ import { useRouter } from 'expo-router';
 export default function RegisterScreen() {
   const router = useRouter();
   const [email, setEmail] = useState('');
+  const [name, setName] = useState('');
   const [password, setPassword] = useState('');
 
   const handleRegister = async () => {
-    if (!email || !password) {
-      Alert.alert('Error', 'Please enter email and password.');
+    if (!email || !password || !name) {
+      Alert.alert('Error', 'Please enter email, name and password.');
       return;
     }
 
-    // Save user credentials (in real apps, use a backend!)
-    await AsyncStorage.setItem('user', JSON.stringify({ email, password }));
-    Alert.alert('Success', 'Account created! You can now log in.');
-    router.push('/login'); // Navigate to login page
+    try {
+      const formData = new FormData();
+      formData.append('email', email);
+      formData.append('name', name);
+      formData.append('password', password);
+
+      const response = await fetch('https://ensf400.devweeny.ca/register', {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'Accept': 'application/json',
+        },
+      });
+
+      const data = await response.json();
+      console.log(data);
+      if (response.ok) {
+        await AsyncStorage.setItem('user', JSON.stringify(data));
+        Alert.alert('Success', 'Account created! You can now log in.');
+        router.push('/login');
+      } else {
+        Alert.alert('Error', data.message || 'Registration failed');
+      }
+    } catch (error) {
+      console.error(error);
+      Alert.alert('Error', error.message || 'Network error occurred');
+    }
   };
 
   return (
@@ -28,6 +52,13 @@ export default function RegisterScreen() {
         placeholder="Enter email"
         value={email}
         onChangeText={setEmail}
+      />
+      <Text>Name:</Text>
+      <TextInput
+        style={{ borderWidth: 1, padding: 10, marginVertical: 10 }}
+        placeholder="Enter name"
+        value={name}
+        onChangeText={setName}
       />
       <Text>Password:</Text>
       <TextInput

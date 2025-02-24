@@ -9,20 +9,33 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
 
   const handleLogin = async () => {
-    const storedUser = await AsyncStorage.getItem('user');
-    if (!storedUser) {
-      Alert.alert('Error', 'No account found. Please register.');
-      return;
-    }
+    try {
+      const formData = new FormData();
+      formData.append('email', email);
+      formData.append('password', password);
 
-    const { email: storedEmail, password: storedPassword } = JSON.parse(storedUser);
+      const response = await fetch('https://ensf400.devweeny.ca/login', {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'Accept': 'application/json',
+        },
+      });
 
-    if (email === storedEmail && password === storedPassword) {
-      await AsyncStorage.setItem('loggedIn', 'true');
-      Alert.alert('Success', 'Logged in!');
-      router.replace('/'); // Updated redirection
-    } else {
-      Alert.alert('Error', 'Invalid credentials.');
+      const data = await response.json();
+
+      console.log(data);
+
+      if (response.ok) {
+        await AsyncStorage.setItem('loggedIn', 'true');
+        await AsyncStorage.setItem('user', JSON.stringify(data));
+        Alert.alert('Success', 'Logged in!');
+        router.replace('/');
+      } else {
+        Alert.alert('Error', data.message || 'Login failed');
+      }
+    } catch (error) {
+      Alert.alert('Error', error.message || 'Network error occurred');
     }
   };
 

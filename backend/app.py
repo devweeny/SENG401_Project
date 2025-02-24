@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, jsonify
 from flask import request
 import database
 
@@ -6,7 +6,7 @@ app = Flask(__name__)
 
 @app.route("/")
 def hello():
-    return "Hello, World!"
+    return jsonify({"message": "Hello, World!"})
 
 @app.route("/login", methods=['POST'])
 def login():
@@ -14,8 +14,8 @@ def login():
     password = request.form['password']
 
     if database.login(email, password):
-        return "You are logged in", 200
-    return "Invalid email or password", 401
+        return jsonify({"message": "You are logged in"}), 200
+    return jsonify({"message": "Invalid email or password"}), 401
 
 @app.route("/register", methods=['POST'])
 def register():
@@ -24,5 +24,5 @@ def register():
     password = request.form['password']
 
     if database.register(email, name, password):
-        return "You are registered", 200
-    return "Email already in use", 400
+        return jsonify({"message": "You are registered"}), 200
+    return jsonify({"message": "Email already in use"}), 400
