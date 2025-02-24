@@ -1,15 +1,28 @@
 from flask import Flask
-import psycopg2
-
-conn = psycopg2.connect(database="postgres", user="postgres", password="password", host="db", port="5432")
-
-cursor = conn.cursor()
-cursor.execute("SELECT * FROM users")
-rows = cursor.fetchall()
-print(rows)
+from flask import request
+import database
 
 app = Flask(__name__)
 
-@app.route("/login")
+@app.route("/")
+def hello():
+    return "Hello, World!"
+
+@app.route("/login", methods=['POST'])
 def login():
-    return "<p>Login</p>"
+    email = request.form['email']
+    password = request.form['password']
+
+    if database.login(email, password):
+        return "You are logged in", 200
+    return "Invalid email or password", 401
+
+@app.route("/register", methods=['POST'])
+def register():
+    email = request.form['email']
+    name = request.form['name']
+    password = request.form['password']
+
+    if database.register(email, name, password):
+        return "You are registered", 200
+    return "Email already in use", 400
