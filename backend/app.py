@@ -14,8 +14,13 @@ def login():
     password = request.form['password']
 
     if database.login(email, password):
-        return jsonify({"message": "You are logged in"}), 200
-    return jsonify({"message": "Invalid email or password"}), 401
+        response = jsonify({"message": "You are logged in"})
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        return response, 200
+    
+    response = jsonify({"message": "Invalid email or password"})
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    return response, 401
 
 @app.route("/register", methods=['POST'])
 def register():
@@ -23,6 +28,12 @@ def register():
     name = request.form['name']
     password = request.form['password']
 
+
     if database.register(email, name, password):
-        return jsonify({"message": "You are registered"}), 200
-    return jsonify({"message": "Email already in use"}), 400
+        response = jsonify({"message": "You are registered"})
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        return response, 200
+    
+    response = jsonify({"message": "Email already in use"})
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    return response, 400
