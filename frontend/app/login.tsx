@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { View, Text, TextInput, Button, Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
@@ -34,7 +34,7 @@ export default function LoginScreen() {
       } else {
         Alert.alert('Error', data.message || 'Login failed');
       }
-    } catch (error) {
+    } catch (error: any) {
       Alert.alert('Error', error.message || 'Network error occurred');
     }
   };
