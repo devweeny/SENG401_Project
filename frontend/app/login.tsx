@@ -1,63 +1,178 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, Button, Alert } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useRouter } from 'expo-router';
+"use client"
+
+import React, { useState } from "react"
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView } from "react-native"
+import AsyncStorage from "@react-native-async-storage/async-storage"
+import { useRouter } from "expo-router"
 
 export default function LoginScreen() {
-  const router = useRouter();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const router = useRouter()
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
 
   const handleLogin = async () => {
     try {
-      const formData = new FormData();
-      formData.append('email', email);
-      formData.append('password', password);
+      const formData = new FormData()
+      formData.append("email", email)
+      formData.append("password", password)
 
-      const response = await fetch('https://ensf400.devweeny.ca/login', {
-        method: 'POST',
+      const response = await fetch("https://ensf400.devweeny.ca/login", {
+        method: "POST",
         body: formData,
         headers: {
-          'Accept': 'application/json',
+          Accept: "application/json",
         },
-      });
+      })
 
-      const data = await response.json();
+      const data = await response.json()
 
-      console.log(data);
+      console.log(data)
 
       if (response.ok) {
-        await AsyncStorage.setItem('loggedIn', 'true');
-        await AsyncStorage.setItem('user', JSON.stringify(data));
-        Alert.alert('Success', 'Logged in!');
-        router.replace('/');
+        await AsyncStorage.setItem("loggedIn", "true")
+        await AsyncStorage.setItem("user", JSON.stringify(data))
+        router.replace("/ingredients")
       } else {
-        Alert.alert('Error', data.message || 'Login failed');
+        alert(data.message || "Login failed")
       }
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Network error occurred');
+      alert(error.message || "Network error occurred")
     }
-  };
+  }
 
   return (
-    <View style={{ padding: 20 }}>
-      <Text>Email:</Text>
-      <TextInput
-        style={{ borderWidth: 1, padding: 10, marginVertical: 10 }}
-        placeholder="Enter email"
-        value={email}
-        onChangeText={setEmail}
-      />
-      <Text>Password:</Text>
-      <TextInput
-        style={{ borderWidth: 1, padding: 10, marginVertical: 10 }}
-        placeholder="Enter password"
-        secureTextEntry
-        value={password}
-        onChangeText={setPassword}
-      />
-      <Button title="Login" onPress={handleLogin} />
-      <Button title="Register" onPress={() => router.push('/register')} />
-    </View>
-  );
+    <SafeAreaView style={styles.container}>
+      <View style={styles.logoContainer}>
+        <Text style={styles.logoText}>
+          <Text style={styles.logoM}>M</Text>
+          <Text style={styles.logoE}>e</Text>
+          <Text style={styles.logoA}>a</Text>
+          <Text style={styles.logoL}>l</Text>
+          <Text style={styles.logoBlack}>Matcher</Text>
+        </Text>
+        <Text style={styles.loginText}>Login</Text>
+      </View>
+
+      <View style={styles.inputContainer}>
+        <TextInput
+          style={styles.input}
+          placeholder="email@domain.com"
+          value={email}
+          onChangeText={setEmail}
+          autoCapitalize="none"
+          keyboardType="email-address"
+        />
+
+        <TextInput
+          style={styles.input}
+          placeholder="Password"
+          secureTextEntry
+          value={password}
+          onChangeText={setPassword}
+        />
+
+        <TouchableOpacity style={styles.continueButton} onPress={handleLogin}>
+          <Text style={styles.continueButtonText}>Continue</Text>
+        </TouchableOpacity>
+
+        <Text style={styles.orText}>or</Text>
+
+        <TouchableOpacity style={styles.signUpButton} onPress={() => router.push("/register")}>
+          <Text style={styles.signUpButtonText}>Sign Up</Text>
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.navBar}>
+        <View style={styles.navIndicator} />
+      </View>
+    </SafeAreaView>
+  )
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "white",
+  },
+  logoContainer: {
+    alignItems: "center",
+    marginTop: 60,
+    marginBottom: 40,
+  },
+  logoText: {
+    fontSize: 32,
+    fontWeight: "bold",
+    marginBottom: 10,
+  },
+  logoM: {
+    color: "#FF0000", // Red
+  },
+  logoE: {
+    color: "#FFA500", // Orange
+  },
+  logoA: {
+    color: "#008000", // Green
+  },
+  logoL: {
+    color: "#0000FF", // Blue
+  },
+  logoBlack: {
+    color: "#000000", // Black
+  },
+  loginText: {
+    fontSize: 18,
+    fontWeight: "500",
+  },
+  inputContainer: {
+    paddingHorizontal: 20,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: "#E0E0E0",
+    borderRadius: 5,
+    padding: 15,
+    marginBottom: 15,
+    fontSize: 16,
+  },
+  continueButton: {
+    backgroundColor: "#000000",
+    borderRadius: 5,
+    padding: 15,
+    alignItems: "center",
+    marginBottom: 15,
+  },
+  continueButtonText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "500",
+  },
+  orText: {
+    textAlign: "center",
+    marginVertical: 15,
+    color: "#888",
+  },
+  signUpButton: {
+    backgroundColor: "#F0F0F0",
+    borderRadius: 5,
+    padding: 15,
+    alignItems: "center",
+  },
+  signUpButtonText: {
+    color: "#000000",
+    fontSize: 16,
+    fontWeight: "500",
+  },
+  navBar: {
+    position: "absolute",
+    bottom: 20,
+    width: "100%",
+    alignItems: "center",
+  },
+  navIndicator: {
+    width: 60,
+    height: 5,
+    backgroundColor: "#000",
+    borderRadius: 3,
+  },
+})
+
