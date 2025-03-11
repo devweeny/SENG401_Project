@@ -2,6 +2,7 @@ import dotenv
 from google import genai
 import json
 import re
+import asyncio
 
 if __name__ == "__main__":
     ingredients = ["chicken", "eggs", "milk", "cream", "butter", "flour", "sugar", "salt", 
@@ -18,14 +19,14 @@ if __name__ == "__main__":
     )
     print(response.text)
 
-def generate(ingredients: list):
+async def generate(ingredients: list):
     client = genai.Client(api_key=dotenv.get_key(".env","GEMINI_KEY"))
-    response = client.models.generate_content(
+    loop = asyncio.get_event_loop()
+    response = await loop.run_in_executor(None, lambda: client.models.generate_content(
         model='gemini-2.0-flash', contents="Give me 3 recipes using some of the following ingredients: " + ", ".join(ingredients) + ". Provide a source for the recipe. Return the result in a pure json format without any extra formatting. " + 
         "Keep title, instructions, ingredients, and source as the different inputs. Do not escape any displays, do not format the output for readability. An example output would look as follows: {\"title\": \"Recipe Title\", \"instructions\": \"Recipe Instructions\", \"ingredients\": [\"ingredient1\", \"ingredient2\", \"ingredient3\"], \"source\": \"Recipe Source\"}"
-        
-    )
-    print(clean_json(response.text))
+    ))
+    # print(clean_json(response.text))
     return clean_json(response.text)
 
 def clean_json(text):

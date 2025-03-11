@@ -3,6 +3,7 @@ services:
     image: mysql
     restart: always
     environment:
+      NAME: db
       MYSQL_ROOT_PASSWORD: password
       MYSQL_DATABASE: mealmatcher
       MYSQL_USER: mealmatcher
@@ -12,6 +13,12 @@ services:
     volumes:
       - db_data:/var/lib/mysql
       - ./schema.sql:/docker-entrypoint-initdb.d/0_init.sql
+
+  flask:
+    image: test
+    build: .
+    ports:
+      - "5000:5000"
 
 
 volumes:

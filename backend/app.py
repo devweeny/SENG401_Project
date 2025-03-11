@@ -3,6 +3,7 @@ from flask_jwt_extended import JWTManager, create_access_token, get_jwt_identity
 import database
 import dotenv
 import gemini
+import asyncio
 
 app = Flask(__name__)
 app.config['JWT_SECRET_KEY'] = dotenv.get_key(".env", "JWT_SECRET_KEY")
@@ -66,13 +67,17 @@ Response format:
 @jwt_required()
 def generate():
     current_user = get_jwt_identity()
-    print(current_user)
     ingredients = request.form.get('ingredients').strip().split(",")
-    print(ingredients)
-    recipe = gemini.generate(ingredients)
+
+    try:
+        loop = asyncio.get_event_loop()
+    except RuntimeError:
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+    recipe = loop.run_until_complete(gemini.generate(ingredients))
     response = jsonify({"recipe": recipe})
     response.headers.add('Access-Control-Allow-Origin', '*')
     return response, 200
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(port=5000, debug=True, host='0.0.0.0')

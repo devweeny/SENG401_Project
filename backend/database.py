@@ -7,9 +7,14 @@ conn = None
 def get_connection():
     global conn
     if conn is None or not conn.is_connected():
-        conn = mysql.connector.connect(user='mealmatcher', password='password',
-                                host='127.0.0.1',
-                                database='mealmatcher')
+        try:
+            conn = mysql.connector.connect(user='mealmatcher', password='password',
+                        host='127.0.0.1',
+                        database='mealmatcher')
+        except mysql.connector.Error:
+            conn = mysql.connector.connect(user='mealmatcher', password='password',
+                        host='db',
+                        database='mealmatcher')
     return conn
 
 def login(email, password):
