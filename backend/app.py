@@ -1,12 +1,19 @@
 from flask import Flask, jsonify, request
 from flask_jwt_extended import JWTManager, create_access_token, get_jwt_identity, jwt_required
 import database
-import dotenv
+# import dotenv
 import gemini
 import asyncio
+import os
 
 app = Flask(__name__)
-app.config['JWT_SECRET_KEY'] = dotenv.get_key(".env", "JWT_SECRET_KEY")
+# app.config['JWT_SECRET_KEY'] = dotenv.get_key(".env", "JWT_SECRET_KEY")
+JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "default")
+if JWT_SECRET_KEY is None:
+    print("WARNING: JWT_SECRET_KEY environment variable is not set, using default (not secure)") 
+
+app.config['JWT_SECRET_KEY'] = JWT_SECRET_KEY
+
 jwt = JWTManager(app)
 
 @app.route("/")

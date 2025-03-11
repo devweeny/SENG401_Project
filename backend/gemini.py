@@ -1,26 +1,16 @@
-import dotenv
 from google import genai
 import json
 import re
 import asyncio
+import os
 
-if __name__ == "__main__":
-    ingredients = ["chicken", "eggs", "milk", "cream", "butter", "flour", "sugar", "salt", 
-                "pepper", "onions", "garlic", "tomatoes", "potatoes", "carrots", "celery", 
-                "broccoli", "spinach", "lettuce", "cabbage", "peas", "beans", "rice", "pasta", 
-                "bread", "cheese", "bacon", "ham", "beef", "pork", "lamb", "fish", "shrimp", "crab", 
-                "lobster", "clams", "mussels", "oysters", "squid", "octopus", "scallops", "mushrooms", 
-                "bell peppers", "chili peppers", "jalapenos", "avocado", "lemons", "limes", "oranges"]
+API_KEY = os.getenv("GEMINI_KEY", None)
 
-
-    client = genai.Client(api_key=dotenv.get_key(".env","GEMINI_KEY"))
-    response = client.models.generate_content(
-        model='gemini-2.0-flash', contents="Give me 3 recipes using some of the following ingredients: " + ", ".join(ingredients) + ". Provide a source for the recipe."
-    )
-    print(response.text)
+if API_KEY is None:
+    raise ValueError("GEMINI_KEY environment variable is not set")
 
 async def generate(ingredients: list):
-    client = genai.Client(api_key=dotenv.get_key(".env","GEMINI_KEY"))
+    client = genai.Client(api_key=API_KEY)
     loop = asyncio.get_event_loop()
     response = await loop.run_in_executor(None, lambda: client.models.generate_content(
         model='gemini-2.0-flash', contents="Give me 3 recipes using some of the following ingredients: " + ", ".join(ingredients) + ". Provide a source for the recipe. Return the result in a pure json format without any extra formatting. " + 

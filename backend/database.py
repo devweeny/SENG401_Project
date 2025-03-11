@@ -1,20 +1,25 @@
 import bcrypt
-from dotenv import load_dotenv
 import mysql.connector
+import os
 
 conn = None
+
+host = os.getenv("DB_HOST", "127.0.0.1")
+user = os.getenv("DB_USER", "mealmatcher")
+database = os.getenv("DB_DATABASE", "mealmatcher")
+password = os.getenv("DB_PASSWORD", "password")
+port = os.getenv("DB_PORT", 3306)
 
 def get_connection():
     global conn
     if conn is None or not conn.is_connected():
-        try:
-            conn = mysql.connector.connect(user='mealmatcher', password='password',
-                        host='127.0.0.1',
-                        database='mealmatcher')
-        except mysql.connector.Error:
-            conn = mysql.connector.connect(user='mealmatcher', password='password',
-                        host='db',
-                        database='mealmatcher')
+        conn = mysql.connector.connect(
+            host=host,
+            port=port,
+            user=user,
+            password=password,
+            database=database
+        )
     return conn
 
 def login(email, password):
