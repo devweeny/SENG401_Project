@@ -16,7 +16,7 @@ export default function LoginScreen() {
       formData.append("email", email)
       formData.append("password", password)
 
-      const response = await fetch("https://ensf400.devweeny.ca/login", {
+      const response = await fetch("https://seng401.devweeny.ca/login", {
         method: "POST",
         body: formData,
         headers: {

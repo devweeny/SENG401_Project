@@ -23,7 +23,7 @@ export default function RegisterScreen() {
       formData.append("name", name)
       formData.append("password", password)
 
-      const response = await fetch("https://ensf400.devweeny.ca/register", {
+      const response = await fetch("https://seng401.devweeny.ca/register", {
         method: "POST",
         body: formData,
         headers: {
