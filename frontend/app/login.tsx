@@ -72,7 +72,7 @@ export default function LoginScreen() {
         />
 
         <TouchableOpacity style={styles.continueButton} onPress={handleLogin}>
-          <Text style={styles.continueButtonText}>Continue</Text>
+          <Text style={styles.continueButtonText}>Log in</Text>
         </TouchableOpacity>
 
         <Text style={styles.orText}>or</Text>
@@ -80,6 +80,13 @@ export default function LoginScreen() {
         <TouchableOpacity style={styles.signUpButton} onPress={() => router.push("/register")}>
           <Text style={styles.signUpButtonText}>Sign Up</Text>
         </TouchableOpacity>
+
+        <Text style={styles.orText}>or</Text>
+
+        <TouchableOpacity style={styles.guestButton} onPress={handleLogin}>
+          <Text style={styles.guestButtonText}>Continue as Guest</Text>
+        </TouchableOpacity>
+
       </View>
 
       <View style={styles.navBar}>
@@ -173,6 +180,18 @@ const styles = StyleSheet.create({
     height: 5,
     backgroundColor: "#000",
     borderRadius: 3,
+  },
+  guestButton: {
+    backgroundColor: "#E0E0E0",
+    borderRadius: 5,
+    padding: 15,
+    alignItems: "center",
+    marginTop: 15,
+  },
+  guestButtonText: {
+    color: "#000000",
+    fontSize: 16,
+    fontWeight: "500",
   },
 })
 
