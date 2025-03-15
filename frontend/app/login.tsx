@@ -40,6 +40,16 @@ export default function LoginScreen() {
     }
   }
 
+  const handleGuest = async () => {
+    try {
+      await AsyncStorage.setItem("loggedIn", "true"); 
+      await AsyncStorage.setItem("user", JSON.stringify({ guest: true })); 
+      router.replace("/ingredients"); 
+    } catch (error: any) {
+      alert(error.message || "An error occurred while continuing as a guest.");
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.logoContainer}>
@@ -83,7 +93,7 @@ export default function LoginScreen() {
 
         <Text style={styles.orText}>or</Text>
 
-        <TouchableOpacity style={styles.guestButton} onPress={handleLogin}>
+        <TouchableOpacity style={styles.guestButton} onPress={handleGuest}>
           <Text style={styles.guestButtonText}>Continue as Guest</Text>
         </TouchableOpacity>
 
