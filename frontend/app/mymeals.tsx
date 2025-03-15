@@ -3,9 +3,20 @@ import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Image, TextInpu
 import { useRouter } from "expo-router"
 import { Ionicons } from "@expo/vector-icons"
 import React, { useState } from "react"
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function MyMealsScreen() {
   const router = useRouter()
+
+  const handleLogout = async () => {
+    try {
+      await AsyncStorage.clear(); 
+      alert("You are logged out."); 
+      router.replace("/login"); 
+    } catch (error) {
+      alert("Failed to log out. Please try again.");
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -80,6 +91,10 @@ export default function MyMealsScreen() {
           </TouchableOpacity>
         </View>
       </ScrollView>
+
+      <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+        <Text style={styles.logoutButtonText}>Log Out</Text>
+      </TouchableOpacity>
 
       <View style={styles.bottomNav}>
         <TouchableOpacity style={styles.navButton} onPress={() => router.push("/ingredients")}>
@@ -186,6 +201,19 @@ const styles = StyleSheet.create({
   },
   cuisineText: {
     fontSize: 14,
+  },
+  logoutButton: {
+    backgroundColor: "#FF3B30",
+    padding: 15,
+    borderRadius: 5,
+    alignItems: "center",
+    marginHorizontal: 15,
+    marginBottom: 20,
+  },
+  logoutButtonText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "bold",
   },
   bottomNav: {
     width: "100%",
