@@ -25,15 +25,24 @@ jwt = JWTManager(app)
 def hello():
     return jsonify({"message": "Hello, World!"})
 
+
+# User: (2, 'testuser@test.com', 'testuser', '$2b$12$CJTLZGs1IcDLJueOCNA6tuPjW8wgDa1ThNNQ/0hqAzMbUk2ne8Zy6', 
+# datetime.datetime(2025, 2, 24, 5, 35, 58))
 @app.route("/login", methods=['POST'])
 def login():
     email = request.form['email']
     password = request.form['password']
-
-    if database.login(email, password):
-        token = create_access_token(identity=email)
-        print("Token:", token)
-        response = jsonify({"token": token})
+    user = database.login(email, password)
+    if user:
+        token = create_access_token(identity=user[1])
+        user_json = {
+            "id": user[0],
+            "email": user[1],
+            "name": user[2],
+            "token": token,
+            "created_at": user[4]
+        }
+        response = jsonify(user_json)
         response.headers.add('Access-Control-Allow-Origin', '*')
         return response, 200
     

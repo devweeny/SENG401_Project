@@ -29,7 +29,8 @@ def login(email, password):
     conn.close()
     if user is None:
         return False
-    return bcrypt.checkpw(password.encode("utf-8"), user[3].encode("utf-8"))
+    if bcrypt.checkpw(password.encode("utf-8"), user[3].encode("utf-8")):
+        return user
 
 def register(email, name, password):
     cursor = get_connection().cursor()
