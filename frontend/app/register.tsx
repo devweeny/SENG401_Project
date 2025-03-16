@@ -7,24 +7,21 @@ import { useRouter } from "expo-router"
 
 export default function RegisterScreen() {
   const router = useRouter()
-  const [name, setName] = useState("")
   const [email, setEmail] = useState("")
+  const [name, setName] = useState("")
   const [password, setPassword] = useState("")
-  const [confirmPassword, setConfirmPassword] = useState("")
 
   const handleRegister = async () => {
-    if (password !== confirmPassword) {
-      alert("Passwords do not match")
+    if (!email || !password || !name) {
+      alert("Please enter email, name and password.")
       return
     }
 
     try {
-      // Create form data to send to API
       const formData = new FormData()
-      formData.append("name", name)
       formData.append("email", email)
+      formData.append("name", name)
       formData.append("password", password)
-      formData.append("c_password", confirmPassword)
 
       const response = await fetch("https://seng401.devweeny.ca/register", {
         method: "POST",
@@ -36,30 +33,16 @@ export default function RegisterScreen() {
 
       const data = await response.json()
       console.log(data)
-
       if (response.ok) {
-        // Save login information
-        await AsyncStorage.setItem("loggedIn", "true")
-        await AsyncStorage.setItem("token", JSON.stringify(data.token))
-        
-        // Save user data for profile page
-        const userData = {
-          name: name,
-          email: email
-        }
-        await AsyncStorage.setItem("user", JSON.stringify(userData))
-        
-        router.replace("/ingredients")
+        await AsyncStorage.setItem("user", JSON.stringify(data))
+        alert("Account created! You can now log in.")
+        router.push("/login")
       } else {
-        if (data.message && typeof data.message === "object") {
-          const messages = Object.values(data.message).flat()
-          alert(messages.join("\n"))
-        } else {
-          alert(data.message || "Registration failed")
-        }
+        alert(data.message || "Registration failed")
       }
-    } catch (error: any) {
-      alert(error.message || "Network error occurred")
+    } catch (error: unknown) {
+      console.error(error)
+      alert(error instanceof Error ? error.message : "Network error occurred")
     }
   }
 
@@ -73,25 +56,21 @@ export default function RegisterScreen() {
           <Text style={styles.logoL}>l</Text>
           <Text style={styles.logoBlack}>Matcher</Text>
         </Text>
-        <Text style={styles.registrationText}>Sign Up</Text>
+        <Text style={styles.createAccountText}>Create an account</Text>
+        <Text style={styles.subtitleText}>Enter your email to sign up and get swiping!</Text>
       </View>
 
       <View style={styles.inputContainer}>
         <TextInput
           style={styles.input}
-          placeholder="Name"
-          value={name}
-          onChangeText={setName}
-        />
-
-        <TextInput
-          style={styles.input}
-          placeholder="Email"
+          placeholder="email@domain.com"
           value={email}
           onChangeText={setEmail}
           autoCapitalize="none"
           keyboardType="email-address"
         />
+
+        <TextInput style={styles.input} placeholder="Name" value={name} onChangeText={setName} />
 
         <TextInput
           style={styles.input}
@@ -101,22 +80,14 @@ export default function RegisterScreen() {
           onChangeText={setPassword}
         />
 
-        <TextInput
-          style={styles.input}
-          placeholder="Confirm Password"
-          secureTextEntry
-          value={confirmPassword}
-          onChangeText={setConfirmPassword}
-        />
-
-        <TouchableOpacity style={styles.registerButton} onPress={handleRegister}>
-          <Text style={styles.registerButtonText}>Sign Up</Text>
+        <TouchableOpacity style={styles.continueButton} onPress={handleRegister}>
+          <Text style={styles.continueButtonText}>Continue</Text>
         </TouchableOpacity>
 
         <Text style={styles.orText}>or</Text>
 
         <TouchableOpacity style={styles.loginButton} onPress={() => router.push("/login")}>
-          <Text style={styles.loginButtonText}>Login</Text>
+          <Text style={styles.loginButtonText}>Login with Existing Email</Text>
         </TouchableOpacity>
       </View>
 
@@ -135,7 +106,7 @@ const styles = StyleSheet.create({
   logoContainer: {
     alignItems: "center",
     marginTop: 60,
-    marginBottom: 40,
+    marginBottom: 30,
   },
   logoText: {
     fontSize: 32,
@@ -157,9 +128,16 @@ const styles = StyleSheet.create({
   logoBlack: {
     color: "#000000", // Black
   },
-  registrationText: {
+  createAccountText: {
     fontSize: 18,
     fontWeight: "500",
+    marginBottom: 5,
+  },
+  subtitleText: {
+    fontSize: 14,
+    color: "#666",
+    textAlign: "center",
+    paddingHorizontal: 40,
   },
   inputContainer: {
     paddingHorizontal: 20,
@@ -172,14 +150,14 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     fontSize: 16,
   },
-  registerButton: {
+  continueButton: {
     backgroundColor: "#000000",
     borderRadius: 5,
     padding: 15,
     alignItems: "center",
     marginBottom: 15,
   },
-  registerButtonText: {
+  continueButtonText: {
     color: "white",
     fontSize: 16,
     fontWeight: "500",
@@ -213,3 +191,4 @@ const styles = StyleSheet.create({
     borderRadius: 3,
   },
 })
+

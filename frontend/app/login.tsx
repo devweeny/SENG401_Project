@@ -29,20 +29,8 @@ export default function LoginScreen() {
       console.log(data)
 
       if (response.ok) {
-        // Save login information
         await AsyncStorage.setItem("loggedIn", "true")
         await AsyncStorage.setItem("token", JSON.stringify(data["token"]))
-        
-        // Save email for profile display
-        await AsyncStorage.setItem("email", email)
-        
-        // Save user data in a structured way
-        const userData = {
-          email: email,
-          name: email.split('@')[0], // Use part before @ as name if no name is available
-        }
-        await AsyncStorage.setItem("user", JSON.stringify(userData))
-        
         router.replace("/ingredients")
       } else {
         alert(data.message || "Login failed")
@@ -54,20 +42,15 @@ export default function LoginScreen() {
 
   const handleGuest = async () => {
     try {
-      await AsyncStorage.setItem("loggedIn", "true")
-      
-      // Save guest user data with name and email for profile page
-      await AsyncStorage.setItem("user", JSON.stringify({ 
-        guest: true,
-        name: "Guest User",
-        email: "guest@mealmatcher.com"
-      }))
-      
-      router.replace("/ingredients")
+      await AsyncStorage.setItem("loggedIn", "true"); 
+      await AsyncStorage.setItem("user", JSON.stringify({ guest: true })); 
+      router.replace("/ingredients"); 
     } catch (error: any) {
-      alert(error.message || "An error occurred while continuing as a guest.")
+      alert(error.message || "An error occurred while continuing as a guest.");
     }
-  }
+  };
+
+
 
   return (
     <SafeAreaView style={styles.container}>
@@ -248,3 +231,4 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
 })
+

@@ -13,29 +13,19 @@ export default function ProfileScreen() {
   useEffect(() => {
     const loadUserData = async () => {
       try {
-        // First check for user data from registration
+        // Check if logged in as guest
         const user = await AsyncStorage.getItem("user")
-        
         if (user) {
           const parsedUser = JSON.parse(user)
-          console.log("Found user data:", parsedUser)
           setUserData(parsedUser)
         } else {
-          // If no user data is found, check if a token exists (meaning they logged in)
+          // If no user data is found, check if a token exists (meaning they logged in but no profile info)
           const token = await AsyncStorage.getItem("token")
-          const email = await AsyncStorage.getItem("email")
-          const name = await AsyncStorage.getItem("name")
-          
           if (token) {
-            console.log("Found token but no user data, using email/name if available")
-            // User is logged in but we don't have their profile data from registration
-            setUserData({ 
-              email: email || "User Email", 
-              name: name || "User"
-            })
+            // User is logged in but we don't have their profile data
+            setUserData({ email: "User" })
           } else {
             // Default to guest mode if nothing else
-            console.log("No user data or token found, assuming guest mode")
             setUserData({ guest: true })
           }
         }
