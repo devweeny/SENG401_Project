@@ -131,7 +131,7 @@ export default function SwipeScreen() {
         </ThemedText>
         <TouchableOpacity 
           style={styles.viewSavedButton} 
-          onPress={() => router.push('/mymeals')}
+          onPress={() => router.push('/(tabs)/mymeals')}
         >
           <ThemedText style={styles.viewSavedButtonText}>
             View Saved Recipes ({likedRecipes.length})
@@ -139,7 +139,7 @@ export default function SwipeScreen() {
         </TouchableOpacity>
         <TouchableOpacity 
           style={[styles.viewSavedButton, styles.newSearchButton]} 
-          onPress={() => router.push('/ingredients')}
+          onPress={() => router.push('/(tabs)/ingredients')}
         >
           <ThemedText style={styles.viewSavedButtonText}>
             New Search
@@ -156,10 +156,10 @@ export default function SwipeScreen() {
       <ThemedView style={styles.header}>
         <ThemedText type="title">Find Recipes</ThemedText>
         <ThemedView style={styles.actionButtons}>
-          <TouchableOpacity onPress={() => router.push('/ingredients')}>
+          <TouchableOpacity onPress={() => router.push('/(tabs)/ingredients')}>
             <ThemedText style={styles.backButton}>Back to Ingredients</ThemedText>
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => router.push('/mymeals')}>
+          <TouchableOpacity onPress={() => router.push('/(tabs)/mymeals')}>
             <ThemedText style={styles.savedButton}>
               Saved ({likedRecipes.length})
             </ThemedText>

@@ -1,8 +1,7 @@
 "use client"
 
 import React, { useState } from "react"
-import { View, Text, TextInput, StyleSheet, SafeAreaView, TouchableOpacity, Image, Button } from "react-native"
-import { useRouter } from "expo-router"
+import { View, Text, TextInput, StyleSheet, SafeAreaView, TouchableOpacity, Button } from "react-native"
 import { Ionicons } from "@expo/vector-icons"
 import AsyncStorage from "@react-native-async-storage/async-storage"
 
@@ -30,15 +29,8 @@ const generateRecipe = async (ingredients: string) => {
 };
 
 export default function IngredientsScreen() {
-  const router = useRouter()
   const [ingredients, setIngredients] = useState("")
   const [recipe, setRecipe] = useState("")
-
-  const handleSearch = () => {
-    // In a real app, you would search for recipes based on ingredients
-    // For now, we'll just navigate to the swipe view
-    router.push("/swipe")
-  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -69,23 +61,15 @@ export default function IngredientsScreen() {
             onChangeText={setRecipe}
           />
         </View>
-        <Button title="Generate Recipe" onPress={async () => {
-          let data = await generateRecipe("chicken,rice,beans");
-          console.log(data);
-        }} />
-      </View>
-
-      <View style={styles.bottomNav}>
-        <TouchableOpacity style={styles.navButton} onPress={() => router.push("/ingredients")}>
-          <Ionicons name="time-outline" size={24} color="#000" />
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.navButton} onPress={handleSearch}>
-          <Ionicons name="heart" size={24} color="#000" />
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.navButton} onPress={() => router.push("/mymeals")}>
-          <Image source={{ uri: "https://randomuser.me/api/portraits/men/1.jpg" }} style={styles.profilePic} />
+        
+        <TouchableOpacity 
+          style={styles.findButton}
+          onPress={async () => {
+            let data = await generateRecipe("chicken,rice,beans");
+            console.log(data);
+          }}
+        >
+          <Text style={styles.findButtonText}>Find Recipes</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -134,27 +118,16 @@ const styles = StyleSheet.create({
     marginVertical: 10,
     color: "#888",
   },
-  bottomNav: {
-    position: "absolute",
-    bottom: 0,
-    width: "100%",
-    flexDirection: "row",
-    justifyContent: "space-around",
-    borderTopWidth: 1,
-    borderTopColor: "#E0E0E0",
+  findButton: {
+    backgroundColor: '#FF6B6B',
     paddingVertical: 15,
-    backgroundColor: "white",
+    borderRadius: 25,
+    alignItems: 'center',
+    marginTop: 20,
   },
-  navButton: {
-    alignItems: "center",
-    justifyContent: "center",
-    width: 40,
-    height: 40,
-  },
-  profilePic: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
+  findButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
   },
 })
-

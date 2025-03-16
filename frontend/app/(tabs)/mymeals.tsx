@@ -1,13 +1,11 @@
 "use client"
 import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Image, TextInput, ScrollView } from "react-native"
-import { useRouter } from "expo-router"
+import { router } from "expo-router"
 import { Ionicons } from "@expo/vector-icons"
 import React, { useState } from "react"
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function MyMealsScreen() {
-  const router = useRouter()
-
   const handleLogout = async () => {
     try {
       await AsyncStorage.clear(); 
@@ -95,20 +93,6 @@ export default function MyMealsScreen() {
       <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
         <Text style={styles.logoutButtonText}>Log Out</Text>
       </TouchableOpacity>
-
-      <View style={styles.bottomNav}>
-        <TouchableOpacity style={styles.navButton} onPress={() => router.push("/ingredients")}>
-          <Ionicons name="time-outline" size={24} color="#000" />
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.navButton} onPress={() => router.push("/swipe")}>
-          <Ionicons name="heart" size={24} color="#000" />
-        </TouchableOpacity>
-
-        <TouchableOpacity style={[styles.navButton, styles.activeNavButton]}>
-          <Image source={{ uri: "https://randomuser.me/api/portraits/men/1.jpg" }} style={styles.profilePic} />
-        </TouchableOpacity>
-      </View>
     </SafeAreaView>
   )
 }
@@ -117,6 +101,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "white",
+    paddingTop: 50
   },
   searchContainer: {
     flexDirection: "row",
@@ -214,30 +199,5 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 16,
     fontWeight: "bold",
-  },
-  bottomNav: {
-    width: "100%",
-    flexDirection: "row",
-    justifyContent: "space-around",
-    borderTopWidth: 1,
-    borderTopColor: "#E0E0E0",
-    paddingVertical: 15,
-    backgroundColor: "white",
-  },
-  navButton: {
-    alignItems: "center",
-    justifyContent: "center",
-    width: 40,
-    height: 40,
-  },
-  activeNavButton: {
-    borderBottomWidth: 2,
-    borderBottomColor: "#000",
-  },
-  profilePic: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-  },
+  }
 })
-

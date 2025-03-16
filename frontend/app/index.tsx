@@ -26,14 +26,14 @@ export default function Index() {
   if (isLoggedIn === null) {
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <ActivityIndicator size="large" />
+        <ActivityIndicator size="large" color="#FF6B6B" />
       </View>
     )
   }
 
-  // Only redirect to ingredients if explicitly logged in
+  // Only redirect to tabs if explicitly logged in
   if (isLoggedIn === true) {
-    return <Redirect href="/ingredients" />
+    return <Redirect href="/(tabs)/ingredients" />
   }
 
   // Always default to login if not explicitly logged in

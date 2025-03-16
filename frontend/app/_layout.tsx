@@ -31,21 +31,17 @@ export default function RootLayout() {
 
   return (
     <Stack screenOptions={{ 
-      headerShown: false,              // Hide all headers
-      animation: 'none',               // Disable animations between screens
-      gestureEnabled: false            // Disable swipe back gesture
+      headerShown: false,
+      animation: 'none',
+      gestureEnabled: false
     }}>
       <Stack.Screen name="index" />
       <Stack.Screen name="login" />
       <Stack.Screen name="register" />
       <Stack.Screen name="ClearStorage" />
-      {isAuthenticated ? (
-        <>
-          <Stack.Screen name="ingredients" />
-          <Stack.Screen name="swipe" />
-          <Stack.Screen name="mymeals" />
-        </>
-      ) : null}
+      
+      {/* The (tabs) group will handle the tab navigation */}
+      {isAuthenticated && <Stack.Screen name="(tabs)" options={{ headerShown: false }} />}
     </Stack>
   );
 }
