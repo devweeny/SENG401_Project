@@ -1,5 +1,5 @@
 "use client"
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, TextInput, ScrollView, ActivityIndicator } from "react-native"
+import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, TextInput, ScrollView, ActivityIndicator, Modal } from "react-native"
 import { router } from "expo-router"
 import { Ionicons } from "@expo/vector-icons"
 import React, { useState, useEffect } from "react"
@@ -19,6 +19,8 @@ export default function MyMealsScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("favorites");
+  const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
+  const [modalVisible, setModalVisible] = useState(false);
 
   useEffect(() => {
     loadSavedRecipes();
@@ -60,6 +62,11 @@ export default function MyMealsScreen() {
     } catch (error) {
       console.error("Error removing recipe:", error);
     }
+  };
+
+  const handleViewRecipe = (recipe: Recipe) => {
+    setSelectedRecipe(recipe);
+    setModalVisible(true);
   };
 
   if (isLoading) {
@@ -125,7 +132,10 @@ export default function MyMealsScreen() {
                 )}
                 
                 <View style={styles.recipeActions}>
-                  <TouchableOpacity style={styles.viewButton}>
+                  <TouchableOpacity 
+                    style={styles.viewButton}
+                    onPress={() => handleViewRecipe(recipe)}
+                  >
                     <Text style={styles.viewButtonText}>View Full Recipe</Text>
                   </TouchableOpacity>
                   <TouchableOpacity 
@@ -153,6 +163,45 @@ export default function MyMealsScreen() {
           </View>
         )}
       </ScrollView>
+
+      {/* Recipe Detail Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <TouchableOpacity 
+              style={styles.closeButton}
+              onPress={() => setModalVisible(false)}
+            >
+              <Ionicons name="close" size={24} color="#888" />
+            </TouchableOpacity>
+            
+            {selectedRecipe && (
+              <ScrollView style={styles.modalScrollView}>
+                <Text style={styles.modalTitle}>{selectedRecipe.title}</Text>
+                
+                <Text style={styles.modalSectionTitle}>Ingredients:</Text>
+                {selectedRecipe.ingredients.map((ingredient, idx) => (
+                  <Text key={idx} style={styles.modalIngredientText}>• {ingredient}</Text>
+                ))}
+                
+                <Text style={styles.modalSectionTitle}>Instructions:</Text>
+                {selectedRecipe.instructions.map((instruction, idx) => (
+                  <Text key={idx} style={styles.modalInstructionText}>
+                    {idx + 1}. {instruction}
+                  </Text>
+                ))}
+                
+                <Text style={styles.modalSourceText}>Source: {selectedRecipe.source}</Text>
+              </ScrollView>
+            )}
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   )
 }
@@ -311,5 +360,67 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 16,
     fontWeight: "600",
+  },
+  // Modal styles
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    width: '90%',
+    height: '80%',
+    backgroundColor: 'white',
+    borderRadius: 20,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  closeButton: {
+    alignSelf: 'flex-end',
+    padding: 5,
+  },
+  modalScrollView: {
+    flex: 1,
+    marginTop: 10,
+  },
+  modalTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#FF6B6B',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  modalSectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginTop: 15,
+    marginBottom: 10,
+    color: '#333',
+  },
+  modalIngredientText: {
+    fontSize: 16,
+    marginBottom: 8,
+    paddingLeft: 10,
+  },
+  modalInstructionText: {
+    fontSize: 16,
+    lineHeight: 24,
+    marginBottom: 10,
+    paddingLeft: 10,
+  },
+  modalSourceText: {
+    fontSize: 14,
+    fontStyle: 'italic',
+    color: '#888',
+    marginTop: 20,
+    marginBottom: 30,
   },
 });
