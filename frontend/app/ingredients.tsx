@@ -14,7 +14,7 @@ const generateRecipe = async (ingredients: string) => {
   const formData = new FormData();
   formData.append("ingredients", ingredients);
   try {
-    let response = await fetch("http://localhost:5000/generate", {
+    let response = await fetch("https://seng401.devweeny.ca/generate", {
       method: "POST",
       body: formData,
       headers: {
