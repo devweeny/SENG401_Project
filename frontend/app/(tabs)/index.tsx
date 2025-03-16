@@ -1,13 +1,7 @@
-import { useRouter } from "expo-router";
-import React from "react";
-import { View, Button } from "react-native";
+import { Redirect } from 'expo-router';
+import React from 'react';
 
-export default function HomeScreen() {
-  const router = useRouter();
-
-  return (
-    <View>
-      <Button title="Go to Login" onPress={() => router.push("/login")} />
-    </View>
-  );
+export default function TabIndex() {
+  // Redirect to the ingredients tab
+  return <Redirect href="/(tabs)/ingredients" />;
 }
