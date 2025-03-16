@@ -1,9 +1,33 @@
 "use client"
 
 import React, { useState } from "react"
-import { View, Text, TextInput, StyleSheet, SafeAreaView, TouchableOpacity, Image } from "react-native"
+import { View, Text, TextInput, StyleSheet, SafeAreaView, TouchableOpacity, Image, Button } from "react-native"
 import { useRouter } from "expo-router"
 import { Ionicons } from "@expo/vector-icons"
+import AsyncStorage from "@react-native-async-storage/async-storage"
+
+const generateRecipe = async (ingredients: string) => {
+  let token = await AsyncStorage.getItem("token");
+  if (token) {
+    token = token.slice(1, -1);
+  }
+  const formData = new FormData();
+  formData.append("ingredients", ingredients);
+  try {
+    let response = await fetch("http://localhost:5000/generate", {
+      method: "POST",
+      body: formData,
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': "application/json",
+      },
+    });
+    let data = await response.json();
+      return data;
+  } catch (error) {
+    console.log(error)
+  }
+};
 
 export default function IngredientsScreen() {
   const router = useRouter()
@@ -45,6 +69,10 @@ export default function IngredientsScreen() {
             onChangeText={setRecipe}
           />
         </View>
+        <Button title="Generate Recipe" onPress={async () => {
+          let data = await generateRecipe("chicken,rice,beans");
+          console.log(data);
+        }} />
       </View>
 
       <View style={styles.bottomNav}>
