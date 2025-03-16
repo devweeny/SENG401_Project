@@ -209,6 +209,24 @@ export default function ProfileScreen() {
             </TouchableOpacity>
 
             <TouchableOpacity
+              style={styles.preferenceButton}
+              onPress={() => toggleDietaryPreference("Vegan")}
+            >
+              <Text style={styles.preferenceButtonText}>
+                {dietaryPreferences.includes("Vegan") ? "Remove Vegan" : "Add Vegan"}
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.preferenceButton}
+              onPress={() => toggleDietaryPreference("Gluten-Free")}
+            >
+              <Text style={styles.preferenceButtonText}>
+                {dietaryPreferences.includes("Gluten-Free") ? "Remove Gluten-Free" : "Add Gluten-Free"}
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
               style={styles.saveButton}
               onPress={handleSaveProfile}
             >
