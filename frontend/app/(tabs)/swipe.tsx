@@ -1,8 +1,9 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { StyleSheet, Animated, PanResponder, View, Dimensions, TouchableOpacity, ActivityIndicator, ScrollView } from 'react-native';
 import { router } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from "@expo/vector-icons";
+import { useFocusEffect } from '@react-navigation/native';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SWIPE_THRESHOLD = 120;
@@ -26,42 +27,39 @@ export default function SwipeScreen() {
     outputRange: ['-10deg', '0deg', '10deg'],
     extrapolate: 'clamp'
   });
+  const loadData = async () => {
+    try {
+      // Load generated recipes
+      const recipesJson = await AsyncStorage.getItem("generatedRecipes");
+      let loadedRecipes: Recipe[] = recipesJson
+        ? JSON.parse(recipesJson)
+        : [];
 
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        // Load generated recipes
-        const recipesJson = await AsyncStorage.getItem('generatedRecipes');
-        let loadedRecipes: Recipe[] = [];
-        
-        if (recipesJson) {
-          loadedRecipes = JSON.parse(recipesJson);
-        }
-        
-        // If no recipes were loaded, show dummy data or redirect back
-        if (!loadedRecipes || loadedRecipes.length === 0) {
-          console.log("No recipes found, using fallback");
-          // Redirect back to ingredients
-          router.replace('/(tabs)/ingredients');
-          return;
-        }
-        
-        setRecipes(loadedRecipes);
-        
-        // Load saved recipes
-        const savedJson = await AsyncStorage.getItem('likedRecipes');
-        if (savedJson) {
-          setLikedRecipes(JSON.parse(savedJson));
-        }
-      } catch (error) {
-        console.error("Error loading recipes:", error);
-      } finally {
-        setIsLoading(false);
+      setRecipes(loadedRecipes);
+      if (loadedRecipes.length > 0) {
+        setCurrentIndex(0);
+        await AsyncStorage.removeItem("generatedRecipes");
       }
-    };
+
+      // Load saved recipes
+      const savedJson = await AsyncStorage.getItem("likedRecipes");
+      const savedRecipes: Recipe[] = savedJson
+        ? JSON.parse(savedJson)
+        : [];
+      setLikedRecipes(savedRecipes);
+    } catch (error) {
+      console.error("Error loading recipes:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useFocusEffect(
+    React.useCallback(() => {
+
     
-    loadData();
-  }, []);
+      loadData();
+    }, []));
 
   const panResponder = PanResponder.create({
     onStartShouldSetPanResponder: () => true,
