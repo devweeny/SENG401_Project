@@ -1,51 +1,27 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { StyleSheet, Animated, PanResponder, Image, Dimensions, TouchableOpacity } from 'react-native';
+import { StyleSheet, Animated, PanResponder, View, Dimensions, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { router } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 
-// Mock data for recipes
-const RECIPES = [
-  {
-    id: 1,
-    title: 'Chicken Fajitas',
-    image: require('@/assets/images/chicken-fajitas.jpg'),
-    prepTime: '20 min',
-    cookTime: '15 min',
-    ingredients: ['Chicken breast', 'Bell peppers', 'Onions', 'Fajita seasoning', 'Tortillas'],
-    difficulty: 'Easy',
-    description: 'Quick and flavorful Mexican-inspired dish with sizzling chicken and colorful vegetables.'
-  },
-  {
-    id: 2,
-    title: 'Spaghetti Carbonara',
-    image: require('@/assets/images/carbonara.jpg'),
-    prepTime: '10 min',
-    cookTime: '20 min',
-    ingredients: ['Spaghetti', 'Eggs', 'Bacon', 'Parmesan cheese', 'Black pepper'],
-    difficulty: 'Medium',
-    description: 'Classic Italian pasta dish with creamy egg sauce, crispy bacon and parmesan cheese.'
-  },
-  {
-    id: 3,
-    title: 'Vegetable Stir-Fry',
-    image: require('@/assets/images/stir-fry.jpg'),
-    prepTime: '15 min',
-    cookTime: '10 min',
-    ingredients: ['Broccoli', 'Bell peppers', 'Carrots', 'Soy sauce', 'Garlic', 'Ginger'],
-    difficulty: 'Easy',
-    description: 'Healthy and colorful vegetable dish that comes together in minutes.'
-  }
-];
-
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SWIPE_THRESHOLD = 120;
 
+// Define recipe type
+interface Recipe {
+  title: string;
+  ingredients: string[];
+  instructions: string[];
+  source: string;
+}
+
 export default function SwipeScreen() {
+  const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [likedRecipes, setLikedRecipes] = useState<number[]>([]);
+  const [likedRecipes, setLikedRecipes] = useState<Recipe[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const position = useRef(new Animated.ValueXY()).current;
   const rotation = position.x.interpolate({
     inputRange: [-SCREEN_WIDTH / 2, 0, SCREEN_WIDTH / 2],
@@ -54,14 +30,38 @@ export default function SwipeScreen() {
   });
 
   useEffect(() => {
-    // In a real app, you would fetch recipes based on selected ingredients
-    // For now, we'll just load the mock data
     const loadData = async () => {
-      const savedLikedRecipes = await AsyncStorage.getItem('likedRecipes');
-      if (savedLikedRecipes) {
-        setLikedRecipes(JSON.parse(savedLikedRecipes));
+      try {
+        // Load generated recipes
+        const recipesJson = await AsyncStorage.getItem('generatedRecipes');
+        let loadedRecipes: Recipe[] = [];
+        
+        if (recipesJson) {
+          loadedRecipes = JSON.parse(recipesJson);
+        }
+        
+        // If no recipes were loaded, show dummy data or redirect back
+        if (!loadedRecipes || loadedRecipes.length === 0) {
+          console.log("No recipes found, using fallback");
+          // You could set some fallback recipes here or redirect
+          router.replace('/(tabs)/ingredients');
+          return;
+        }
+        
+        setRecipes(loadedRecipes);
+        
+        // Load saved recipes
+        const savedJson = await AsyncStorage.getItem('likedRecipes');
+        if (savedJson) {
+          setLikedRecipes(JSON.parse(savedJson));
+        }
+      } catch (error) {
+        console.error("Error loading recipes:", error);
+      } finally {
+        setIsLoading(false);
       }
     };
+    
     loadData();
   }, []);
 
@@ -90,18 +90,20 @@ export default function SwipeScreen() {
   };
 
   const swipeRight = () => {
-    const recipe = RECIPES[currentIndex];
-    const newLikedRecipes = [...likedRecipes, recipe.id];
-    setLikedRecipes(newLikedRecipes);
-    AsyncStorage.setItem('likedRecipes', JSON.stringify(newLikedRecipes));
-    
-    Animated.timing(position, {
-      toValue: { x: SCREEN_WIDTH + 100, y: 0 },
-      duration: 250,
-      useNativeDriver: false
-    }).start(() => {
-      nextCard();
-    });
+    if (currentIndex < recipes.length) {
+      const recipe = recipes[currentIndex];
+      const newLikedRecipes = [...likedRecipes, recipe];
+      setLikedRecipes(newLikedRecipes);
+      AsyncStorage.setItem('likedRecipes', JSON.stringify(newLikedRecipes));
+      
+      Animated.timing(position, {
+        toValue: { x: SCREEN_WIDTH + 100, y: 0 },
+        duration: 250,
+        useNativeDriver: false
+      }).start(() => {
+        nextCard();
+      });
+    }
   };
 
   const swipeLeft = () => {
@@ -119,8 +121,17 @@ export default function SwipeScreen() {
     setCurrentIndex(currentIndex + 1);
   };
 
+  if (isLoading) {
+    return (
+      <ThemedView style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#FF6B6B" />
+        <ThemedText style={{ marginTop: 20 }}>Loading recipes...</ThemedText>
+      </ThemedView>
+    );
+  }
+
   // Render out of cards view
-  if (currentIndex >= RECIPES.length) {
+  if (currentIndex >= recipes.length) {
     return (
       <ThemedView style={styles.noMoreCards}>
         <ThemedText type="title" style={styles.noMoreCardsText}>
@@ -149,7 +160,7 @@ export default function SwipeScreen() {
     );
   }
 
-  const recipe = RECIPES[currentIndex];
+  const recipe = recipes[currentIndex];
 
   return (
     <ThemedView style={styles.container}>
@@ -181,29 +192,12 @@ export default function SwipeScreen() {
             }
           ]}
         >
-          <Image source={recipe.image} style={styles.recipeImage} />
+          <ThemedView style={styles.recipeHeader}>
+            <ThemedText type="title" style={styles.recipeTitle}>{recipe.title}</ThemedText>
+          </ThemedView>
           
           <ThemedView style={styles.recipeDetails}>
-            <ThemedText type="title" style={styles.recipeTitle}>{recipe.title}</ThemedText>
-            
-            <ThemedView style={styles.recipeMetadata}>
-              <ThemedView style={styles.metadataItem}>
-                <ThemedText style={styles.metadataLabel}>Prep Time</ThemedText>
-                <ThemedText style={styles.metadataValue}>{recipe.prepTime}</ThemedText>
-              </ThemedView>
-              <ThemedView style={styles.metadataItem}>
-                <ThemedText style={styles.metadataLabel}>Cook Time</ThemedText>
-                <ThemedText style={styles.metadataValue}>{recipe.cookTime}</ThemedText>
-              </ThemedView>
-              <ThemedView style={styles.metadataItem}>
-                <ThemedText style={styles.metadataLabel}>Difficulty</ThemedText>
-                <ThemedText style={styles.metadataValue}>{recipe.difficulty}</ThemedText>
-              </ThemedView>
-            </ThemedView>
-            
-            <ThemedText style={styles.description}>{recipe.description}</ThemedText>
-            
-            <ThemedText type="defaultSemiBold" style={styles.ingredientsTitle}>
+            <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>
               Ingredients:
             </ThemedText>
             <ThemedView style={styles.ingredientsList}>
@@ -213,6 +207,19 @@ export default function SwipeScreen() {
                 </ThemedView>
               ))}
             </ThemedView>
+            
+            <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>
+              Instructions:
+            </ThemedText>
+            <ThemedView style={styles.instructionsList}>
+              {recipe.instructions.map((instruction, index) => (
+                <ThemedView key={index} style={styles.instructionItem}>
+                  <ThemedText style={styles.instructionText}>{index + 1}. {instruction}</ThemedText>
+                </ThemedView>
+              ))}
+            </ThemedView>
+            
+            <ThemedText style={styles.sourceText}>Source: {recipe.source}</ThemedText>
           </ThemedView>
         </Animated.View>
       </ThemedView>
@@ -233,6 +240,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingTop: 50,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   header: {
     paddingHorizontal: 20,
@@ -273,55 +285,48 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     overflow: 'hidden',
   },
-  recipeImage: {
-    width: '100%',
-    height: 220,
-    resizeMode: 'cover',
-  },
-  recipeDetails: {
+  recipeHeader: {
     padding: 20,
+    backgroundColor: '#FF6B6B',
   },
   recipeTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 10,
+    color: 'white',
+    textAlign: 'center',
   },
-  recipeMetadata: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-    paddingBottom: 15,
+  recipeDetails: {
+    padding: 20,
   },
-  metadataItem: {
-    alignItems: 'center',
-  },
-  metadataLabel: {
-    fontSize: 12,
-    color: '#888',
-    marginBottom: 3,
-  },
-  metadataValue: {
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  description: {
-    marginBottom: 15,
-    lineHeight: 20,
-    fontSize: 15,
-  },
-  ingredientsTitle: {
+  sectionTitle: {
+    fontSize: 18,
+    marginTop: 10,
     marginBottom: 5,
   },
   ingredientsList: {
-    marginBottom: 15,
+    marginBottom: 20,
   },
   ingredientItem: {
     marginVertical: 3,
   },
   ingredientText: {
+    fontSize: 16,
+  },
+  instructionsList: {
+    marginBottom: 20,
+  },
+  instructionItem: {
+    marginVertical: 5,
+  },
+  instructionText: {
+    fontSize: 16,
+    lineHeight: 22,
+  },
+  sourceText: {
     fontSize: 14,
+    fontStyle: 'italic',
+    color: '#888',
+    marginTop: 10,
   },
   buttonsContainer: {
     flexDirection: 'row',

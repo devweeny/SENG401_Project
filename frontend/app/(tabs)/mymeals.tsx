@@ -1,83 +1,157 @@
 "use client"
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Image, TextInput, ScrollView } from "react-native"
+import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, TextInput, ScrollView, ActivityIndicator } from "react-native"
 import { router } from "expo-router"
 import { Ionicons } from "@expo/vector-icons"
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
+// Define recipe type
+interface Recipe {
+  title: string;
+  ingredients: string[];
+  instructions: string[];
+  source: string;
+}
+
 export default function MyMealsScreen() {
+  const [savedRecipes, setSavedRecipes] = useState<Recipe[]>([]);
+  const [filteredRecipes, setFilteredRecipes] = useState<Recipe[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [activeTab, setActiveTab] = useState("favorites");
+
+  useEffect(() => {
+    loadSavedRecipes();
+  }, []);
+
+  useEffect(() => {
+    // Filter recipes when search query changes
+    if (searchQuery) {
+      const filtered = savedRecipes.filter(recipe => 
+        recipe.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        recipe.ingredients.some(ing => ing.toLowerCase().includes(searchQuery.toLowerCase()))
+      );
+      setFilteredRecipes(filtered);
+    } else {
+      setFilteredRecipes(savedRecipes);
+    }
+  }, [searchQuery, savedRecipes]);
+
+  const loadSavedRecipes = async () => {
+    try {
+      const savedJson = await AsyncStorage.getItem('likedRecipes');
+      if (savedJson) {
+        const recipes = JSON.parse(savedJson);
+        setSavedRecipes(recipes);
+        setFilteredRecipes(recipes);
+      }
+    } catch (error) {
+      console.error("Error loading saved recipes:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleRemoveRecipe = async (recipeToRemove: Recipe) => {
+    try {
+      const updatedRecipes = savedRecipes.filter(recipe => recipe.title !== recipeToRemove.title);
+      setSavedRecipes(updatedRecipes);
+      await AsyncStorage.setItem('likedRecipes', JSON.stringify(updatedRecipes));
+    } catch (error) {
+      console.error("Error removing recipe:", error);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#FF6B6B" />
+          <Text style={styles.loadingText}>Loading saved recipes...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>My Saved Recipes</Text>
+      </View>
+
       <View style={styles.searchContainer}>
         <Ionicons name="search" size={20} color="#888" style={styles.searchIcon} />
-        <TextInput style={styles.searchInput} placeholder="Search" />
+        <TextInput 
+          style={styles.searchInput} 
+          placeholder="Search recipes or ingredients" 
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+        />
       </View>
 
       <View style={styles.tabContainer}>
-        <TouchableOpacity style={styles.tabButton}>
-          <Ionicons name="heart" size={20} color="#000" />
-          <Text style={styles.tabText}>Favorites</Text>
+        <TouchableOpacity 
+          style={[styles.tabButton, activeTab === "favorites" && styles.activeTabButton]}
+          onPress={() => setActiveTab("favorites")}
+        >
+          <Ionicons name="heart" size={20} color={activeTab === "favorites" ? "#FF6B6B" : "#000"} />
+          <Text style={[styles.tabText, activeTab === "favorites" && styles.activeTabText]}>Favorites</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.tabButton}>
-          <Ionicons name="time-outline" size={20} color="#000" />
-          <Text style={styles.tabText}>History</Text>
+        <TouchableOpacity 
+          style={[styles.tabButton, activeTab === "history" && styles.activeTabButton]}
+          onPress={() => setActiveTab("history")}
+        >
+          <Ionicons name="time-outline" size={20} color={activeTab === "history" ? "#FF6B6B" : "#000"} />
+          <Text style={[styles.tabText, activeTab === "history" && styles.activeTabText]}>History</Text>
         </TouchableOpacity>
       </View>
 
       <ScrollView style={styles.content}>
-        <View style={styles.recipeCard}>
-          <Image
-            source={{
-              uri: "https://images.unsplash.com/photo-1615485290382-441e4d049cb5?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8cGVhcnN8ZW58MHx8MHx8fDA%3D&auto=format&fit=crop&w=800&q=60",
-            }}
-            style={styles.recipeImage}
-          />
-          <Text style={styles.recipeTitle}>Some Fresh New Recs</Text>
-        </View>
-
-        <Text style={styles.sectionTitle}>Cuisines You Love</Text>
-        <View style={styles.cuisineContainer}>
-          <TouchableOpacity style={styles.cuisineButton}>
-            <Image
-              source={{
-                uri: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5c/Flag_of_Greece.svg/1200px-Flag_of_Greece.svg.png",
-              }}
-              style={styles.flagImage}
-            />
-            <Text style={styles.cuisineText}>Greek</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.cuisineButton}>
-            <Image
-              source={{
-                uri: "https://upload.wikimedia.org/wikipedia/en/thumb/0/03/Flag_of_Italy.svg/1200px-Flag_of_Italy.svg.png",
-              }}
-              style={styles.flagImage}
-            />
-            <Text style={styles.cuisineText}>Italian</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.cuisineButton}>
-            <Image
-              source={{
-                uri: "https://upload.wikimedia.org/wikipedia/en/thumb/b/ba/Flag_of_Germany.svg/1200px-Flag_of_Germany.svg.png",
-              }}
-              style={styles.flagImage}
-            />
-            <Text style={styles.cuisineText}>German</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.cuisineButton}>
-            <Image
-              source={{
-                uri: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a9/Flag_of_Thailand.svg/1200px-Flag_of_Thailand.svg.png",
-              }}
-              style={styles.flagImage}
-            />
-            <Text style={styles.cuisineText}>Thai</Text>
-          </TouchableOpacity>
-        </View>
+        {filteredRecipes.length > 0 ? (
+          filteredRecipes.map((recipe, index) => (
+            <View key={index} style={styles.recipeCard}>
+              <View style={styles.recipeHeader}>
+                <Text style={styles.recipeTitle}>{recipe.title}</Text>
+              </View>
+              
+              <View style={styles.recipeContent}>
+                <Text style={styles.sectionTitle}>Ingredients:</Text>
+                {recipe.ingredients.slice(0, 3).map((ingredient, idx) => (
+                  <Text key={idx} style={styles.ingredientText}>• {ingredient}</Text>
+                ))}
+                {recipe.ingredients.length > 3 && (
+                  <Text style={styles.moreText}>+{recipe.ingredients.length - 3} more ingredients</Text>
+                )}
+                
+                <View style={styles.recipeActions}>
+                  <TouchableOpacity style={styles.viewButton}>
+                    <Text style={styles.viewButtonText}>View Full Recipe</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity 
+                    style={styles.removeButton}
+                    onPress={() => handleRemoveRecipe(recipe)}
+                  >
+                    <Ionicons name="trash-outline" size={18} color="#FF3B30" />
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+          ))
+        ) : (
+          <View style={styles.emptyState}>
+            <Ionicons name="heart-outline" size={60} color="#DDD" />
+            <Text style={styles.emptyStateText}>
+              {searchQuery ? "No recipes match your search" : "No saved recipes yet"}
+            </Text>
+            <TouchableOpacity 
+              style={styles.findRecipesButton}
+              onPress={() => router.push('/(tabs)/ingredients')}
+            >
+              <Text style={styles.findRecipesButtonText}>Find Recipes</Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </ScrollView>
     </SafeAreaView>
   )
@@ -87,7 +161,25 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "white",
-    paddingTop: 50
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  loadingText: {
+    marginTop: 10,
+    color: "#888",
+  },
+  header: {
+    paddingTop: 60,
+    paddingHorizontal: 20,
+    paddingBottom: 10,
+    alignItems: "center",
+  },
+  headerTitle: {
+    fontSize: 24,
+    fontWeight: "bold",
   },
   searchContainer: {
     flexDirection: "row",
@@ -117,60 +209,107 @@ const styles = StyleSheet.create({
   tabButton: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 15,
-    paddingVertical: 5,
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+    borderRadius: 20,
+  },
+  activeTabButton: {
+    backgroundColor: "#FFF0F0",
   },
   tabText: {
     marginLeft: 5,
     fontSize: 16,
+  },
+  activeTabText: {
+    color: "#FF6B6B",
+    fontWeight: "600",
   },
   content: {
     flex: 1,
     padding: 15,
   },
   recipeCard: {
-    width: "100%",
-    height: 200,
+    backgroundColor: "white",
     borderRadius: 10,
+    marginBottom: 15,
     overflow: "hidden",
-    marginBottom: 20,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
   },
-  recipeImage: {
-    width: "100%",
-    height: "100%",
+  recipeHeader: {
+    backgroundColor: "#FF6B6B",
+    padding: 15,
   },
   recipeTitle: {
-    position: "absolute",
-    bottom: 10,
-    left: 10,
     color: "white",
     fontSize: 18,
     fontWeight: "bold",
-    textShadowColor: "rgba(0, 0, 0, 0.75)",
-    textShadowOffset: { width: -1, height: 1 },
-    textShadowRadius: 10,
+  },
+  recipeContent: {
+    padding: 15,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: "bold",
-    marginBottom: 15,
+    marginBottom: 8,
   },
-  cuisineContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    flexWrap: "wrap",
-  },
-  cuisineButton: {
-    alignItems: "center",
-    width: "22%",
-  },
-  flagImage: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
+  ingredientText: {
+    fontSize: 14,
     marginBottom: 5,
   },
-  cuisineText: {
+  moreText: {
+    fontSize: 12,
+    color: "#888",
+    fontStyle: "italic",
+    marginTop: 5,
+  },
+  recipeActions: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: 15,
+  },
+  viewButton: {
+    backgroundColor: "#4A90E2",
+    paddingVertical: 8,
+    paddingHorizontal: 15,
+    borderRadius: 5,
+  },
+  viewButtonText: {
+    color: "white",
     fontSize: 14,
-  }
-})
+    fontWeight: "600",
+  },
+  removeButton: {
+    padding: 8,
+  },
+  emptyState: {
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 40,
+  },
+  emptyStateText: {
+    fontSize: 16,
+    color: "#888",
+    textAlign: "center",
+    marginTop: 20,
+    marginBottom: 20,
+  },
+  findRecipesButton: {
+    backgroundColor: "#FF6B6B",
+    paddingVertical: 12,
+    paddingHorizontal: 25,
+    borderRadius: 25,
+  },
+  findRecipesButtonText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+});

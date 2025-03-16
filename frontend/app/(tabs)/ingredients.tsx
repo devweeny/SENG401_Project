@@ -1,7 +1,8 @@
 "use client"
 
 import React, { useState } from "react"
-import { View, Text, TextInput, StyleSheet, SafeAreaView, TouchableOpacity, Button } from "react-native"
+import { View, Text, TextInput, StyleSheet, SafeAreaView, TouchableOpacity, ActivityIndicator, Alert } from "react-native"
+import { router } from "expo-router"
 import { Ionicons } from "@expo/vector-icons"
 import AsyncStorage from "@react-native-async-storage/async-storage"
 
@@ -22,15 +23,47 @@ const generateRecipe = async (ingredients: string) => {
       },
     });
     let data = await response.json();
-      return data;
+    return data;
   } catch (error) {
-    console.log(error)
+    console.log(error);
+    return { error: "Failed to get recipes" };
   }
 };
 
 export default function IngredientsScreen() {
   const [ingredients, setIngredients] = useState("")
   const [recipe, setRecipe] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
+
+  const handleFindRecipes = async () => {
+    if (!ingredients.trim() && !recipe.trim()) {
+      Alert.alert("Please enter ingredients or a recipe name");
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      // We'll prioritize ingredients search over recipe name
+      const searchTerms = ingredients.trim() ? ingredients : recipe;
+      const data = await generateRecipe(searchTerms);
+      
+      if (data.error) {
+        Alert.alert("Error", data.error);
+        return;
+      }
+
+      // Store the recipes in AsyncStorage so we can access them in the swipe screen
+      await AsyncStorage.setItem("generatedRecipes", JSON.stringify(data.recipe || []));
+      
+      // Navigate to the swipe screen
+      router.push("/(tabs)/swipe");
+    } catch (error) {
+      console.error("Error generating recipes:", error);
+      Alert.alert("Error", "Something went wrong while getting recipes");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -41,10 +74,10 @@ export default function IngredientsScreen() {
 
       <View style={styles.searchContainer}>
         <View style={styles.searchBox}>
-          <Ionicons name="search" size={20} color="#888" style={styles.searchIcon} />
+          <Ionicons name="restaurant-outline" size={20} color="#888" style={styles.searchIcon} />
           <TextInput
             style={styles.searchInput}
-            placeholder="Select your ingredients"
+            placeholder="Enter ingredients (comma separated)"
             value={ingredients}
             onChangeText={setIngredients}
           />
@@ -64,13 +97,19 @@ export default function IngredientsScreen() {
         
         <TouchableOpacity 
           style={styles.findButton}
-          onPress={async () => {
-            let data = await generateRecipe("chicken,rice,beans");
-            console.log(data);
-          }}
+          onPress={handleFindRecipes}
+          disabled={isLoading}
         >
-          <Text style={styles.findButtonText}>Find Recipes</Text>
+          {isLoading ? (
+            <ActivityIndicator color="white" />
+          ) : (
+            <Text style={styles.findButtonText}>Find Recipes</Text>
+          )}
         </TouchableOpacity>
+        
+        <Text style={styles.exampleText}>
+          Try: chicken, rice, beans or pasta, tomatoes, garlic
+        </Text>
       </View>
     </SafeAreaView>
   )
@@ -124,10 +163,18 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     alignItems: 'center',
     marginTop: 20,
+    minHeight: 50,
   },
   findButtonText: {
     color: 'white',
     fontSize: 16,
     fontWeight: '600',
+  },
+  exampleText: {
+    textAlign: 'center',
+    color: '#888',
+    marginTop: 15,
+    fontSize: 12,
+    fontStyle: 'italic',
   },
 })
