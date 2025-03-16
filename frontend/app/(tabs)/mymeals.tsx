@@ -104,14 +104,6 @@ export default function MyMealsScreen() {
           <Ionicons name="heart" size={20} color={activeTab === "favorites" ? "#FF6B6B" : "#000"} />
           <Text style={[styles.tabText, activeTab === "favorites" && styles.activeTabText]}>Favorites</Text>
         </TouchableOpacity>
-
-        <TouchableOpacity 
-          style={[styles.tabButton, activeTab === "history" && styles.activeTabButton]}
-          onPress={() => setActiveTab("history")}
-        >
-          <Ionicons name="time-outline" size={20} color={activeTab === "history" ? "#FF6B6B" : "#000"} />
-          <Text style={[styles.tabText, activeTab === "history" && styles.activeTabText]}>History</Text>
-        </TouchableOpacity>
       </View>
 
       <ScrollView style={styles.content}>
