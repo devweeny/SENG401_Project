@@ -1,4 +1,5 @@
 from flask import Flask, jsonify, request
+from flask_cors import CORS, cross_origin
 from flask_jwt_extended import JWTManager, create_access_token, get_jwt_identity, jwt_required
 import database
 # import dotenv
@@ -7,12 +8,16 @@ import asyncio
 import os
 
 app = Flask(__name__)
+cors = CORS(app)
+
 # app.config['JWT_SECRET_KEY'] = dotenv.get_key(".env", "JWT_SECRET_KEY")
 JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "default")
 if JWT_SECRET_KEY is None:
     print("WARNING: JWT_SECRET_KEY environment variable is not set, using default (not secure)") 
 
 app.config['JWT_SECRET_KEY'] = JWT_SECRET_KEY
+app.config['CORS_HEADERS'] = 'Content-Type'
+
 
 jwt = JWTManager(app)
 
@@ -26,7 +31,9 @@ def login():
     password = request.form['password']
 
     if database.login(email, password):
-        response = jsonify({"token": create_access_token(identity=email)})
+        token = create_access_token(identity=email)
+        print("Token:", token)
+        response = jsonify({"token": token})
         response.headers.add('Access-Control-Allow-Origin', '*')
         return response, 200
     
@@ -70,10 +77,12 @@ Response format:
     ]
 }
 """
-@app.route("/generate", methods=['POST'])
+@app.route("/generate", methods=['POST', 'OPTIONS'])
+@cross_origin()
 @jwt_required()
 def generate():
-    current_user = get_jwt_identity()
+    print(request.headers)
+
     ingredients = request.form.get('ingredients').strip().split(",")
 
     try:
@@ -83,7 +92,7 @@ def generate():
         asyncio.set_event_loop(loop)
     recipe = loop.run_until_complete(gemini.generate(ingredients))
     response = jsonify({"recipe": recipe})
-    response.headers.add('Access-Control-Allow-Origin', '*')
+
     return response, 200
 
 if __name__ == "__main__":

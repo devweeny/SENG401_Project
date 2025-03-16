@@ -5,6 +5,8 @@ import asyncio
 import os
 
 API_KEY = os.getenv("GEMINI_KEY", None)
+# import dotenv
+# API_KEY = dotenv.get_key(".env", "GEMINI_KEY")
 
 if API_KEY is None:
     raise ValueError("GEMINI_KEY environment variable is not set")

@@ -26,7 +26,6 @@ def login(email, password):
     cursor = get_connection().cursor()
     cursor.execute("SELECT * FROM users WHERE email = %s", (email,))
     user = cursor.fetchone()
-    print(user)
     conn.close()
     if user is None:
         return False
