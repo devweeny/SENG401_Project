@@ -30,35 +30,36 @@ export default function ProfileScreen() {
   //toggle form visibility to edit profile
   const [isEditing, setIsEditing] = useState(false);
 
-  useEffect(() => {
-    const loadUserData = async () => {
-      try {
-        // Check if logged in as guest
-        const user = await AsyncStorage.getItem("user");
-        if (user) {
-          const parsedUser = JSON.parse(user);
-          setUserData(parsedUser);
+  const loadUserData = async () => {
+    try {
+      // Check if logged in as guest
+      const user = await AsyncStorage.getItem("user");
+      if (user) {
+        const parsedUser = JSON.parse(user);
+        setUserData(parsedUser);
+      } else {
+        // If no user data is found, check if a token exists (meaning they logged in but no profile info)
+        const token = await AsyncStorage.getItem("token");
+        if (token) {
+          // User is logged in but we don't have their profile data
+          setUserData({ email: "User" });
         } else {
-          // If no user data is found, check if a token exists (meaning they logged in but no profile info)
-          const token = await AsyncStorage.getItem("token");
-          if (token) {
-            // User is logged in but we don't have their profile data
-            setUserData({ email: "User" });
-          } else {
-            // Default to guest mode if nothing else
-            setUserData({ guest: true });
-          }
+          // Default to guest mode if nothing else
+          setUserData({ guest: true });
         }
-      } catch (error) {
-        console.error("Error loading user data:", error);
-        setUserData({ guest: true });
-      } finally {
-        setIsLoading(false);
       }
-    };
+    } catch (error) {
+      console.error("Error loading user data:", error);
+      setUserData({ guest: true });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  useEffect(() => {
 
     loadUserData();
-  }, [userData]);
+  }, []);
 
   const handleLogout = async () => {
     try {
@@ -114,7 +115,7 @@ export default function ProfileScreen() {
         console.error("Failed to update profile on server:", error);
       }
       alert("Profile updated successfully!");
-      setUserData(updatedProfile); // Update the local state
+      loadUserData();
 
       // Exit the form after saving changes
       setIsEditing(false);

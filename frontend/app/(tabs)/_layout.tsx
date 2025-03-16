@@ -15,13 +15,7 @@ export default function TabLayout() {
           borderTopColor: '#E0E0E0',
           paddingVertical: Platform.OS === 'ios' ? 10 : 8,
           height: Platform.OS === 'ios' ? 90 : 70, // Increased the height
-          shadowColor: "#000",
-          shadowOffset: {
-            width: 0,
-            height: -2,
-          },
-          shadowOpacity: 0.1,
-          shadowRadius: 3,
+          boxShadow: '0px -2px 3px rgba(0, 0, 0, 0.1)',
           elevation: 5,
         },
         tabBarLabelStyle: {

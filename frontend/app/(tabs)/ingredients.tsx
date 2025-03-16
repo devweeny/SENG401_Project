@@ -7,6 +7,8 @@ import { Ionicons } from "@expo/vector-icons"
 import AsyncStorage from "@react-native-async-storage/async-storage"
 
 const generateRecipe = async (ingredients: string) => {
+  await AsyncStorage.removeItem("generatedRecipes");
+
   try {
     // Check if user is logged in or guest
     const isGuest = await AsyncStorage.getItem("user");
@@ -99,6 +101,7 @@ const generateRecipe = async (ingredients: string) => {
       throw new Error(`Server error: ${response.status}`);
     }
     
+
     let data = await response.json();
     return data;
   } catch (error) {
