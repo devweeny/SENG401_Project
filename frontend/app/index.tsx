@@ -10,8 +10,14 @@ export default function Index() {
 
   useEffect(() => {
     const checkLoginStatus = async () => {
-      const loggedIn = await AsyncStorage.getItem("loggedIn")
-      setIsLoggedIn(loggedIn === "true")
+      try {
+        const loggedIn = await AsyncStorage.getItem("loggedIn")
+        console.log("Login status:", loggedIn)
+        setIsLoggedIn(loggedIn === "true")
+      } catch (error) {
+        console.error("Error checking login status:", error)
+        setIsLoggedIn(false) // Default to not logged in if there's an error
+      }
     }
 
     checkLoginStatus()
@@ -25,9 +31,11 @@ export default function Index() {
     )
   }
 
-  if (isLoggedIn) {
+  // Only redirect to ingredients if explicitly logged in
+  if (isLoggedIn === true) {
     return <Redirect href="/ingredients" />
   }
 
+  // Always default to login if not explicitly logged in
   return <Redirect href="/login" />
 }

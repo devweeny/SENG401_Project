@@ -50,6 +50,8 @@ export default function LoginScreen() {
     }
   };
 
+
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.logoContainer}>
@@ -96,6 +98,17 @@ export default function LoginScreen() {
         <TouchableOpacity style={styles.guestButton} onPress={handleGuest}>
           <Text style={styles.guestButtonText}>Continue as Guest</Text>
         </TouchableOpacity>
+
+        {/* debug button, remove at some point */}
+        <View style={styles.debugContainer}>
+          <TouchableOpacity 
+          onPress={() => router.push('/ClearStorage')}
+          style={styles.debugButton}
+          >
+          <Text style={styles.debugButtonText}>Debug Tools</Text>
+        </TouchableOpacity>
+      </View>
+
 
       </View>
 
@@ -202,6 +215,20 @@ const styles = StyleSheet.create({
     color: "#000000",
     fontSize: 16,
     fontWeight: "500",
+  },
+  debugContainer: {
+    position: 'absolute',
+    bottom: 20,
+    right: 20,
+  },
+  debugButton: {
+    backgroundColor: '#eee',
+    padding: 8,
+    borderRadius: 5,
+  },
+  debugButtonText: {
+    color: '#888',
+    fontSize: 12,
   },
 })
 

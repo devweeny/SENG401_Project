@@ -9,16 +9,22 @@ export default function RootLayout() {
 
   useEffect(() => {
     const checkLogin = async () => {
-      const loggedIn = await AsyncStorage.getItem('loggedIn');
-      setIsAuthenticated(loggedIn === 'true');
+      try {
+        const loggedIn = await AsyncStorage.getItem('loggedIn');
+        setIsAuthenticated(loggedIn === 'true');
+      } catch (error) {
+        console.error("Error in _layout.tsx checkLogin:", error);
+        setIsAuthenticated(false);
+      }
     };
+    
     checkLogin();
   }, []);
 
   if (isAuthenticated === null) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" />
+        <ActivityIndicator size="large" color="#FF6B6B" />
       </View>
     );
   }
@@ -32,9 +38,14 @@ export default function RootLayout() {
       <Stack.Screen name="index" />
       <Stack.Screen name="login" />
       <Stack.Screen name="register" />
-      <Stack.Screen name="ingredients" />
-      <Stack.Screen name="swipe" />
-      <Stack.Screen name="mymeals" />
+      <Stack.Screen name="ClearStorage" />
+      {isAuthenticated ? (
+        <>
+          <Stack.Screen name="ingredients" />
+          <Stack.Screen name="swipe" />
+          <Stack.Screen name="mymeals" />
+        </>
+      ) : null}
     </Stack>
   );
 }
