@@ -59,3 +59,38 @@ def get_recipes(user_id):
     recipes = cursor.fetchall()
     cursor.close()
     return recipes
+
+def update_user(user_id, name, email, dietary, password):
+    print(f"Updating user id='{user_id}' name='{name}' email='{email}' dietary='{dietary}' password='{password}'")
+    cursor = get_connection().cursor()
+
+    if len(name) == 0:
+        name = None
+    if len(email) == 0:
+        email = None
+    if len(dietary) == 0:
+        dietary = None
+    if len(password) == 0:
+        password = None
+    if name is not None:
+        cursor.execute("UPDATE users SET name = %s WHERE user_id = %s", (name, user_id))
+    if email is not None:
+        cursor.execute("UPDATE users SET email = %s WHERE user_id = %s", (email, user_id))
+    # if dietary is not None:
+    #     cursor.execute("UPDATE users SET dietary_preferences = %s WHERE user_id = %s", (dietary, user_id))
+    if password is not None:
+        hashedpw = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt())
+        cursor.execute("UPDATE users SET password = %s WHERE user_id = %s", (hashedpw, user_id))
+    conn.commit()
+    cursor.execute("SELECT * FROM users WHERE user_id = %s", (user_id,))
+    user = cursor.fetchone()
+    cursor.close()
+    conn.close()
+    return user
+
+def get_user_id(email):
+    cursor = get_connection().cursor()
+    cursor.execute("SELECT user_id FROM users WHERE email = %s", (email,))
+    user_id = cursor.fetchone()[0]
+    cursor.close()
+    return user_id

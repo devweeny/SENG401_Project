@@ -104,5 +104,48 @@ def generate():
 
     return response, 200
 
+@app.route("/add_recipe", methods=['POST'])
+@cross_origin()
+@jwt_required()
+def add_recipe():
+    email = get_jwt_identity()
+    user_id = database.get_user_id(email)
+    name = request.form['name']
+    ingredients = request.form['ingredients']
+    instructions = request.form['instructions']
+    database.add_recipe(user_id, name, ingredients, instructions)
+    response = jsonify({"message": "Recipe added successfully"})
+    return response, 200
+
+@app.route("/profile", methods=['PUT'])
+@cross_origin()
+@jwt_required()
+def update_profile():
+    email = get_jwt_identity()
+    user_id = database.get_user_id(email)
+    data = request.get_json()
+    
+    name = data.get('name')
+    email = data.get('email')
+    dietary_preferences = data.get('dietaryPreferences')
+    password = data.get('password')
+
+    updated_user = database.update_user(user_id, name, email, dietary_preferences, password)
+
+    if updated_user:
+        token = create_access_token(identity=updated_user[1])
+        user_json = {
+            "id": updated_user[0],
+            "email": updated_user[1],
+            "name": updated_user[2],
+            "token": token,
+            "created_at": updated_user[4]
+        }
+        response = jsonify(user_json)
+        return response, 200
+    
+    response = jsonify({"message": "Failed to update profile"})
+    return response, 400
+
 if __name__ == "__main__":
     app.run(port=5000, debug=True, host='0.0.0.0')

@@ -30,7 +30,7 @@ export default function LoginScreen() {
 
       if (response.ok) {
         await AsyncStorage.setItem("loggedIn", "true")
-        await AsyncStorage.setItem("token", JSON.stringify(data["token"]))
+        await AsyncStorage.setItem("token", data["token"])
         await AsyncStorage.setItem("user", JSON.stringify(data))
         router.replace("/ingredients")
       } else {

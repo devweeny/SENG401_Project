@@ -1,14 +1,25 @@
-"use client"
+"use client";
 
-import React, { useState, useEffect } from "react"
-import { View, Text, TextInput, StyleSheet, SafeAreaView, TouchableOpacity } from "react-native"
-import { router } from "expo-router"
-import { Ionicons } from "@expo/vector-icons"
-import AsyncStorage from "@react-native-async-storage/async-storage"
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  StyleSheet,
+  SafeAreaView,
+  TouchableOpacity,
+} from "react-native";
+import { router } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function ProfileScreen() {
-  const [userData, setUserData] = useState<{email?: string, name?: string, guest?: boolean} | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+  const [userData, setUserData] = useState<{
+    email?: string;
+    name?: string;
+    guest?: boolean;
+  } | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   // ADDED FOR FR 3
   const [name, setName] = useState(userData?.name || "");
@@ -23,41 +34,41 @@ export default function ProfileScreen() {
     const loadUserData = async () => {
       try {
         // Check if logged in as guest
-        const user = await AsyncStorage.getItem("user")
+        const user = await AsyncStorage.getItem("user");
         if (user) {
-          const parsedUser = JSON.parse(user)
-          setUserData(parsedUser)
+          const parsedUser = JSON.parse(user);
+          setUserData(parsedUser);
         } else {
           // If no user data is found, check if a token exists (meaning they logged in but no profile info)
-          const token = await AsyncStorage.getItem("token")
+          const token = await AsyncStorage.getItem("token");
           if (token) {
             // User is logged in but we don't have their profile data
-            setUserData({ email: "User" })
+            setUserData({ email: "User" });
           } else {
             // Default to guest mode if nothing else
-            setUserData({ guest: true })
+            setUserData({ guest: true });
           }
         }
       } catch (error) {
-        console.error("Error loading user data:", error)
-        setUserData({ guest: true })
+        console.error("Error loading user data:", error);
+        setUserData({ guest: true });
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
-    }
-    
-    loadUserData()
-  }, [])
+    };
+
+    loadUserData();
+  }, [userData]);
 
   const handleLogout = async () => {
     try {
-      await AsyncStorage.clear()
-      alert("You are logged out.")
-      router.replace("/login")
+      await AsyncStorage.clear();
+      alert("You are logged out.");
+      router.replace("/login");
     } catch (error) {
-      alert("Failed to log out. Please try again.")
+      alert("Failed to log out. Please try again.");
     }
-  }
+  };
 
   // ADDED
   const toggleDietaryPreference = (preference: string) => {
@@ -67,7 +78,7 @@ export default function ProfileScreen() {
         : [...prev, preference]
     );
   };
-  
+
   const handleSaveProfile = async () => {
     try {
       const updatedProfile = {
@@ -75,12 +86,36 @@ export default function ProfileScreen() {
         email,
         dietaryPreferences,
       };
-  
-      // Save updated profile to AsyncStorage or send it to the server
-      await AsyncStorage.setItem("user", JSON.stringify(updatedProfile));
+
+      try {
+        const response = await fetch("https://seng401.devweeny.ca/profile", {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${await AsyncStorage.getItem("token")}`,
+          },
+          body: JSON.stringify({
+            name: name,
+            email: email,
+            dietaryPreferences: dietaryPreferences,
+            password: password,
+          }),
+        });
+        if (!response.ok) {
+          throw new Error("Failed to update profile on server");
+        }
+        const data = await response.json();
+
+        await AsyncStorage.setItem("loggedIn", "true");
+        await AsyncStorage.setItem("token", data["token"]);
+        await AsyncStorage.setItem("user", JSON.stringify(data));
+
+      } catch (error) {
+        console.error("Failed to update profile on server:", error);
+      }
       alert("Profile updated successfully!");
       setUserData(updatedProfile); // Update the local state
-  
+
       // Exit the form after saving changes
       setIsEditing(false);
     } catch (error) {
@@ -89,7 +124,6 @@ export default function ProfileScreen() {
   };
   //END OF ADDED
 
-
   if (isLoading) {
     return (
       <SafeAreaView style={styles.container}>
@@ -97,7 +131,7 @@ export default function ProfileScreen() {
           <Text style={styles.loadingText}>Loading profile...</Text>
         </View>
       </SafeAreaView>
-    )
+    );
   }
 
   return (
@@ -132,51 +166,53 @@ export default function ProfileScreen() {
         </TouchableOpacity>
 
         {isEditing && (
-        <View style={styles.formContainer}>
-          <Text style={styles.formLabel}>Name</Text>
-          <TextInput
-            style={styles.formInput}
-            value={name}
-            onChangeText={setName}
-            placeholder="Enter new name"
-          />
+          <View style={styles.formContainer}>
+            <Text style={styles.formLabel}>Name</Text>
+            <TextInput
+              style={styles.formInput}
+              value={name}
+              onChangeText={setName}
+              placeholder="Enter new name"
+            />
 
-          <Text style={styles.formLabel}>Email</Text>
-          <TextInput
-            style={styles.formInput}
-            value={email}
-            onChangeText={setEmail}
-            placeholder="Enter new email"
-            keyboardType="email-address"
-          />
+            <Text style={styles.formLabel}>Email</Text>
+            <TextInput
+              style={styles.formInput}
+              value={email}
+              onChangeText={setEmail}
+              placeholder="Enter new email"
+              keyboardType="email-address"
+            />
 
-          <Text style={styles.formLabel}>Password</Text>
-          <TextInput
-            style={styles.formInput}
-            value={password}
-            onChangeText={setPassword}
-            placeholder="Enter a new password"
-            secureTextEntry
-          />
+            <Text style={styles.formLabel}>Password</Text>
+            <TextInput
+              style={styles.formInput}
+              value={password}
+              onChangeText={setPassword}
+              placeholder="Enter a new password"
+              secureTextEntry
+            />
 
-          <Text style={styles.formLabel}>Dietary Preferences</Text>
-          <TouchableOpacity
-            style={styles.preferenceButton}
-            onPress={() => toggleDietaryPreference("Vegetarian")}
-          >
-            <Text style={styles.preferenceButtonText}>
-              {dietaryPreferences.includes("Vegetarian") ? "Remove Vegetarian" : "Add Vegetarian"}
-            </Text>
-          </TouchableOpacity>
+            <Text style={styles.formLabel}>Dietary Preferences</Text>
+            <TouchableOpacity
+              style={styles.preferenceButton}
+              onPress={() => toggleDietaryPreference("Vegetarian")}
+            >
+              <Text style={styles.preferenceButtonText}>
+                {dietaryPreferences.includes("Vegetarian")
+                  ? "Remove Vegetarian"
+                  : "Add Vegetarian"}
+              </Text>
+            </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.saveButton}
-            onPress={handleSaveProfile}
-          >
-            <Text style={styles.saveButtonText}>Save Changes</Text>
-          </TouchableOpacity>
-        </View>
-      )}
+            <TouchableOpacity
+              style={styles.saveButton}
+              onPress={handleSaveProfile}
+            >
+              <Text style={styles.saveButtonText}>Save Changes</Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
         <View style={styles.separator} />
 
@@ -187,7 +223,7 @@ export default function ProfileScreen() {
         <Text style={styles.versionText}>MealMatcher v1.0.0</Text>
       </View>
     </SafeAreaView>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
@@ -309,4 +345,4 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold",
   },
-})
+});
