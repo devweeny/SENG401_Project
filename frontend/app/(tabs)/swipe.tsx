@@ -246,7 +246,7 @@ export default function SwipeScreen() {
   );
 }
 
-const Text = ({ style, ...props }) => {
+const Text = ({ style, ...props }: { style?: any } & React.ComponentProps<typeof Animated.Text>) => {
   return <Animated.Text style={[{ color: '#333' }, style]} {...props} />;
 };
 
