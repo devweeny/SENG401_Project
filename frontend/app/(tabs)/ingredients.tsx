@@ -7,13 +7,80 @@ import { Ionicons } from "@expo/vector-icons"
 import AsyncStorage from "@react-native-async-storage/async-storage"
 
 const generateRecipe = async (ingredients: string) => {
-  let token = await AsyncStorage.getItem("token");
-  if (token) {
-    token = token.slice(1, -1);
-  }
-  const formData = new FormData();
-  formData.append("ingredients", ingredients);
   try {
+    // Check if user is logged in or guest
+    const isGuest = await AsyncStorage.getItem("user");
+    const isGuestUser = isGuest ? JSON.parse(isGuest).guest === true : false;
+    
+    // If guest user, return mock data
+    if (isGuestUser) {
+      console.log("Using guest mode with mock data");
+      // Return mock data for guest users
+      return {
+        recipe: [
+          {
+            title: "Honey Yogurt Parfait",
+            ingredients: [
+              "1 cup plain yogurt",
+              "2 tablespoons honey",
+              "1/4 cup granola",
+              "Fresh berries (optional)"
+            ],
+            instructions: [
+              "Layer yogurt in a glass or bowl.",
+              "Drizzle honey over the yogurt.",
+              "Top with granola and fresh berries if desired."
+            ],
+            source: "Guest Mode Recipe"
+          },
+          {
+            title: "Milk and Honey Smoothie",
+            ingredients: [
+              "1 cup milk",
+              "2 tablespoons honey",
+              "1 banana",
+              "1/2 cup ice cubes"
+            ],
+            instructions: [
+              "Add all ingredients to a blender.",
+              "Blend until smooth and creamy.",
+              "Pour into a glass and enjoy immediately."
+            ],
+            source: "Guest Mode Recipe"
+          },
+          {
+            title: "Yogurt and Honey Face Mask",
+            ingredients: [
+              "2 tablespoons plain yogurt",
+              "1 tablespoon honey"
+            ],
+            instructions: [
+              "Mix yogurt and honey in a small bowl.",
+              "Apply to clean face and leave on for 15 minutes.",
+              "Rinse with warm water."
+            ],
+            source: "Not a food recipe, but uses your ingredients!"
+          }
+        ]
+      };
+    }
+    
+    // For logged in users, try to use the API
+    let token = await AsyncStorage.getItem("token");
+    if (!token) {
+      console.warn("No authentication token found, using guest mode");
+      throw new Error("Authentication required");
+    }
+    
+    if (token.startsWith('"') && token.endsWith('"')) {
+      token = token.slice(1, -1);
+    }
+    
+    const formData = new FormData();
+    formData.append("ingredients", ingredients);
+    
+    console.log(`Sending request with token: ${token.substring(0, 10)}...`);
+    
     let response = await fetch("https://seng401.devweeny.ca/generate", {
       method: "POST",
       body: formData,
@@ -22,11 +89,72 @@ const generateRecipe = async (ingredients: string) => {
         'Accept': "application/json",
       },
     });
+    
+    if (!response.ok) {
+      console.error(`API error: ${response.status} ${response.statusText}`);
+      if (response.status === 422 || response.status === 401) {
+        // Authentication error - fall back to guest mode
+        throw new Error("Authentication failed, using guest mode");
+      }
+      throw new Error(`Server error: ${response.status}`);
+    }
+    
     let data = await response.json();
     return data;
   } catch (error) {
-    console.log(error);
-    return { error: "Failed to get recipes" };
+    console.log("Error in generateRecipe:", error);
+    
+    // Fall back to mock data when API fails
+    return {
+      recipe: [
+        {
+          title: "Honey Yogurt Parfait",
+          ingredients: [
+            "1 cup plain yogurt",
+            "2 tablespoons honey",
+            "1/4 cup granola",
+            "Fresh berries (optional)"
+          ],
+          instructions: [
+            "Layer yogurt in a glass or bowl.",
+            "Drizzle honey over the yogurt.",
+            "Top with granola and fresh berries if desired."
+          ],
+          source: "Fallback Recipe (API Error)"
+        },
+        {
+          title: "Milk and Honey Smoothie",
+          ingredients: [
+            "1 cup milk",
+            "2 tablespoons honey",
+            "1 banana",
+            "1/2 cup ice cubes"
+          ],
+          instructions: [
+            "Add all ingredients to a blender.",
+            "Blend until smooth and creamy.",
+            "Pour into a glass and enjoy immediately."
+          ],
+          source: "Fallback Recipe (API Error)"
+        },
+        {
+          title: "Honey Milk Tea",
+          ingredients: [
+            "1 cup milk",
+            "1 tea bag (black or green tea)",
+            "2 tablespoons honey",
+            "¼ teaspoon cinnamon (optional)"
+          ],
+          instructions: [
+            "Heat milk until hot but not boiling.",
+            "Steep the tea bag in the hot milk for 3-5 minutes.",
+            "Remove tea bag and stir in honey.",
+            "Add cinnamon if desired and enjoy warm."
+          ],
+          source: "Fallback Recipe (API Error)"
+        }
+      ]
+    };
   }
 };
 

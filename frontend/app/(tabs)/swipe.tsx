@@ -1,10 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { StyleSheet, Animated, PanResponder, View, Dimensions, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { StyleSheet, Animated, PanResponder, View, Dimensions, TouchableOpacity, ActivityIndicator, ScrollView } from 'react-native';
 import { router } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+import { Ionicons } from "@expo/vector-icons";
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SWIPE_THRESHOLD = 120;
@@ -43,7 +41,7 @@ export default function SwipeScreen() {
         // If no recipes were loaded, show dummy data or redirect back
         if (!loadedRecipes || loadedRecipes.length === 0) {
           console.log("No recipes found, using fallback");
-          // You could set some fallback recipes here or redirect
+          // Redirect back to ingredients
           router.replace('/(tabs)/ingredients');
           return;
         }
@@ -123,62 +121,69 @@ export default function SwipeScreen() {
 
   if (isLoading) {
     return (
-      <ThemedView style={styles.loadingContainer}>
+      <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#FF6B6B" />
-        <ThemedText style={{ marginTop: 20 }}>Loading recipes...</ThemedText>
-      </ThemedView>
+        <Text style={{ marginTop: 20, color: "#333" }}>Loading recipes...</Text>
+      </View>
     );
   }
 
   // Render out of cards view
   if (currentIndex >= recipes.length) {
     return (
-      <ThemedView style={styles.noMoreCards}>
-        <ThemedText type="title" style={styles.noMoreCardsText}>
+      <View style={styles.noMoreCards}>
+        <Text style={styles.noMoreCardsText}>
           No more recipes!
-        </ThemedText>
-        <ThemedText style={styles.noMoreCardsSubtext}>
+        </Text>
+        <Text style={styles.noMoreCardsSubtext}>
           You've seen all the matching recipes.
-        </ThemedText>
+        </Text>
         <TouchableOpacity 
           style={styles.viewSavedButton} 
           onPress={() => router.push('/(tabs)/mymeals')}
         >
-          <ThemedText style={styles.viewSavedButtonText}>
+          <Text style={styles.viewSavedButtonText}>
             View Saved Recipes ({likedRecipes.length})
-          </ThemedText>
+          </Text>
         </TouchableOpacity>
         <TouchableOpacity 
           style={[styles.viewSavedButton, styles.newSearchButton]} 
           onPress={() => router.push('/(tabs)/ingredients')}
         >
-          <ThemedText style={styles.viewSavedButtonText}>
+          <Text style={styles.viewSavedButtonText}>
             New Search
-          </ThemedText>
+          </Text>
         </TouchableOpacity>
-      </ThemedView>
+      </View>
     );
   }
 
   const recipe = recipes[currentIndex];
 
   return (
-    <ThemedView style={styles.container}>
-      <ThemedView style={styles.header}>
-        <ThemedText type="title">Find Recipes</ThemedText>
-        <ThemedView style={styles.actionButtons}>
-          <TouchableOpacity onPress={() => router.push('/(tabs)/ingredients')}>
-            <ThemedText style={styles.backButton}>Back to Ingredients</ThemedText>
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Find Recipes</Text>
+        <View style={styles.actionButtons}>
+          <TouchableOpacity 
+            style={styles.backButton}
+            onPress={() => router.push('/(tabs)/ingredients')}
+          >
+            <Ionicons name="arrow-back" size={20} color="#888" />
+            <Text style={styles.backButtonText}>Back</Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => router.push('/(tabs)/mymeals')}>
-            <ThemedText style={styles.savedButton}>
+          <TouchableOpacity 
+            style={styles.savedButton}
+            onPress={() => router.push('/(tabs)/mymeals')}
+          >
+            <Text style={styles.savedButtonText}>
               Saved ({likedRecipes.length})
-            </ThemedText>
+            </Text>
           </TouchableOpacity>
-        </ThemedView>
-      </ThemedView>
+        </View>
+      </View>
 
-      <ThemedView style={styles.cardContainer}>
+      <View style={styles.cardContainer}>
         <Animated.View 
           {...panResponder.panHandlers}
           style={[
@@ -192,74 +197,104 @@ export default function SwipeScreen() {
             }
           ]}
         >
-          <ThemedView style={styles.recipeHeader}>
-            <ThemedText type="title" style={styles.recipeTitle}>{recipe.title}</ThemedText>
-          </ThemedView>
+          <View style={styles.recipeHeader}>
+            <Text style={styles.recipeTitle}>{recipe.title}</Text>
+          </View>
           
-          <ThemedView style={styles.recipeDetails}>
-            <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>
+          <ScrollView style={styles.recipeDetails}>
+            <Text style={styles.sectionTitle}>
               Ingredients:
-            </ThemedText>
-            <ThemedView style={styles.ingredientsList}>
+            </Text>
+            <View style={styles.ingredientsList}>
               {recipe.ingredients.map((ingredient, index) => (
-                <ThemedView key={index} style={styles.ingredientItem}>
-                  <ThemedText style={styles.ingredientText}>• {ingredient}</ThemedText>
-                </ThemedView>
+                <View key={index} style={styles.ingredientItem}>
+                  <Text style={styles.ingredientText}>• {ingredient}</Text>
+                </View>
               ))}
-            </ThemedView>
+            </View>
             
-            <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>
+            <Text style={styles.sectionTitle}>
               Instructions:
-            </ThemedText>
-            <ThemedView style={styles.instructionsList}>
+            </Text>
+            <View style={styles.instructionsList}>
               {recipe.instructions.map((instruction, index) => (
-                <ThemedView key={index} style={styles.instructionItem}>
-                  <ThemedText style={styles.instructionText}>{index + 1}. {instruction}</ThemedText>
-                </ThemedView>
+                <View key={index} style={styles.instructionItem}>
+                  <Text style={styles.instructionText}>{index + 1}. {instruction}</Text>
+                </View>
               ))}
-            </ThemedView>
+            </View>
             
-            <ThemedText style={styles.sourceText}>Source: {recipe.source}</ThemedText>
-          </ThemedView>
+            <Text style={styles.sourceText}>Source: {recipe.source}</Text>
+            
+            {/* Add extra padding at bottom for scroll */}
+            <View style={{ height: 20 }} />
+          </ScrollView>
         </Animated.View>
-      </ThemedView>
+      </View>
 
-      <ThemedView style={styles.buttonsContainer}>
+      <View style={styles.buttonsContainer}>
         <TouchableOpacity style={styles.skipButton} onPress={swipeLeft}>
-          <ThemedText style={styles.skipButtonText}>Skip</ThemedText>
+          <Ionicons name="close-outline" size={24} color="#666" />
+          <Text style={styles.skipButtonText}>Skip</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.likeButton} onPress={swipeRight}>
-          <ThemedText style={styles.likeButtonText}>Save</ThemedText>
+          <Ionicons name="heart-outline" size={24} color="white" />
+          <Text style={styles.likeButtonText}>Save</Text>
         </TouchableOpacity>
-      </ThemedView>
-    </ThemedView>
+      </View>
+    </View>
   );
 }
+
+const Text = ({ style, ...props }) => {
+  return <Animated.Text style={[{ color: '#333' }, style]} {...props} />;
+};
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 50,
+    backgroundColor: 'white',
+    paddingTop: 60,
+    paddingHorizontal: 20,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: 'white',
   },
   header: {
-    paddingHorizontal: 20,
+    marginBottom: 20,
+  },
+  headerTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#333',
+    textAlign: 'center',
     marginBottom: 10,
   },
   actionButtons: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
     marginTop: 10,
   },
   backButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  backButtonText: {
     color: '#888',
     fontSize: 16,
+    marginLeft: 5,
   },
   savedButton: {
+    backgroundColor: '#FFF0F0',
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    borderRadius: 15,
+  },
+  savedButtonText: {
     color: '#FF6B6B',
     fontSize: 16,
     fontWeight: '600',
@@ -268,12 +303,13 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 20,
+    marginBottom: 15,
   },
   card: {
-    width: SCREEN_WIDTH - 40,
-    maxHeight: 600,
+    width: '100%',
+    height: '100%',
     borderRadius: 20,
+    backgroundColor: 'white',
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
@@ -282,12 +318,12 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
-    backgroundColor: '#fff',
     overflow: 'hidden',
   },
   recipeHeader: {
     padding: 20,
     backgroundColor: '#FF6B6B',
+    alignItems: 'center',
   },
   recipeTitle: {
     fontSize: 24,
@@ -296,12 +332,15 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   recipeDetails: {
+    flex: 1,
     padding: 20,
   },
   sectionTitle: {
     fontSize: 18,
+    fontWeight: 'bold',
     marginTop: 10,
-    marginBottom: 5,
+    marginBottom: 10,
+    color: '#333',
   },
   ingredientsList: {
     marginBottom: 20,
@@ -311,6 +350,7 @@ const styles = StyleSheet.create({
   },
   ingredientText: {
     fontSize: 16,
+    color: '#333',
   },
   instructionsList: {
     marginBottom: 20,
@@ -321,6 +361,7 @@ const styles = StyleSheet.create({
   instructionText: {
     fontSize: 16,
     lineHeight: 22,
+    color: '#333',
   },
   sourceText: {
     fontSize: 14,
@@ -331,44 +372,54 @@ const styles = StyleSheet.create({
   buttonsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 20,
+    paddingBottom: 30,
+    paddingTop: 10,
   },
   skipButton: {
     backgroundColor: '#f0f0f0',
     paddingVertical: 15,
-    paddingHorizontal: 30,
+    paddingHorizontal: 20,
     borderRadius: 30,
     width: '48%',
     alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'center',
   },
   skipButtonText: {
     fontSize: 16,
     color: '#666',
     fontWeight: '600',
+    marginLeft: 5,
   },
   likeButton: {
     backgroundColor: '#FF6B6B',
     paddingVertical: 15,
-    paddingHorizontal: 30,
+    paddingHorizontal: 20,
     borderRadius: 30,
     width: '48%',
     alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'center',
   },
   likeButtonText: {
     fontSize: 16,
     color: 'white',
     fontWeight: '600',
+    marginLeft: 5,
   },
   noMoreCards: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 30,
+    backgroundColor: 'white',
   },
   noMoreCardsText: {
+    fontSize: 24,
+    fontWeight: 'bold',
     marginBottom: 10,
     textAlign: 'center',
+    color: '#333',
   },
   noMoreCardsSubtext: {
     textAlign: 'center',
