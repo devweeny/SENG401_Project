@@ -114,27 +114,37 @@ export default function ProfileScreen() {
         name,
         email,
         dietaryPreferences,
-        profilePicture,
       };
-  
-      const response = await fetch("https://seng401.devweeny.ca/profile", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${await AsyncStorage.getItem("token")}`,
-        },
-        body: JSON.stringify(updatedProfile),
-      });
-  
-      if (!response.ok) {
-        throw new Error("Failed to update profile on server");
+
+      try {
+        const response = await fetch("https://seng401.devweeny.ca/profile", {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${await AsyncStorage.getItem("token")}`,
+          },
+          body: JSON.stringify({
+            name: name,
+            email: email,
+            dietaryPreferences: dietaryPreferences,
+            password: password,
+          }),
+        });
+        if (!response.ok) {
+          throw new Error("Failed to update profile on server");
+        }
+        const data = await response.json();
+
+        await AsyncStorage.setItem("loggedIn", "true");
+        await AsyncStorage.setItem("token", data["token"]);
+        await AsyncStorage.setItem("user", JSON.stringify(data));
+      } catch (error) {
+        console.error("Failed to update profile on server:", error);
       }
-  
-      const data = await response.json();
-  
-      await AsyncStorage.setItem("user", JSON.stringify(data));
       alert("Profile updated successfully!");
-      setUserData(data);
+      loadUserData();
+
+      // Exit the form after saving changes
       setIsEditing(false);
     } catch (error) {
       alert("Failed to update profile. Please try again.");
