@@ -24,15 +24,17 @@ export default function RootLayout() {
   }
 
   return (
-    <Stack>
-      {!isAuthenticated ? (
-        <>
-          <Stack.Screen name="login" options={{ headerShown: false }} />
-          <Stack.Screen name="register" options={{ headerShown: false }} />
-        </>
-      ) : (
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      )}
+    <Stack screenOptions={{ 
+      headerShown: false,              // Hide all headers
+      animation: 'none',               // Disable animations between screens
+      gestureEnabled: false            // Disable swipe back gesture
+    }}>
+      <Stack.Screen name="index" />
+      <Stack.Screen name="login" />
+      <Stack.Screen name="register" />
+      <Stack.Screen name="ingredients" />
+      <Stack.Screen name="swipe" />
+      <Stack.Screen name="mymeals" />
     </Stack>
   );
 }
