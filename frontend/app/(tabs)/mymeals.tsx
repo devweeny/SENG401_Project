@@ -6,16 +6,6 @@ import React, { useState } from "react"
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function MyMealsScreen() {
-  const handleLogout = async () => {
-    try {
-      await AsyncStorage.clear(); 
-      alert("You are logged out."); 
-      router.replace("/login"); 
-    } catch (error) {
-      alert("Failed to log out. Please try again.");
-    }
-  };
-
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.searchContainer}>
@@ -89,10 +79,6 @@ export default function MyMealsScreen() {
           </TouchableOpacity>
         </View>
       </ScrollView>
-
-      <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-        <Text style={styles.logoutButtonText}>Log Out</Text>
-      </TouchableOpacity>
     </SafeAreaView>
   )
 }
@@ -186,18 +172,5 @@ const styles = StyleSheet.create({
   },
   cuisineText: {
     fontSize: 14,
-  },
-  logoutButton: {
-    backgroundColor: "#FF3B30",
-    padding: 15,
-    borderRadius: 5,
-    alignItems: "center",
-    marginHorizontal: 15,
-    marginBottom: 20,
-  },
-  logoutButtonText: {
-    color: "white",
-    fontSize: 16,
-    fontWeight: "bold",
   }
 })

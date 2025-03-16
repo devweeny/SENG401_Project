@@ -13,8 +13,8 @@ export default function TabLayout() {
         tabBarStyle: {
           borderTopWidth: 1,
           borderTopColor: '#E0E0E0',
-          paddingVertical: Platform.OS === 'ios' ? 10 : 5,
-          height: Platform.OS === 'ios' ? 85 : 60,
+          paddingVertical: Platform.OS === 'ios' ? 10 : 8,
+          height: Platform.OS === 'ios' ? 90 : 70, // Increased the height
           shadowColor: "#000",
           shadowOffset: {
             width: 0,
@@ -27,7 +27,8 @@ export default function TabLayout() {
         tabBarLabelStyle: {
           fontSize: 12,
           fontWeight: '500',
-          marginBottom: Platform.OS === 'ios' ? 0 : 5,
+          marginBottom: Platform.OS === 'ios' ? 5 : 8, // Added more bottom margin
+          paddingBottom: 2, // Added padding at bottom
         },
         tabBarIconStyle: {
           marginTop: Platform.OS === 'ios' ? 0 : 5,
@@ -60,12 +61,21 @@ export default function TabLayout() {
           ),
         }}
       />
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: 'Profile',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="person-outline" size={size} color={color} />
+          ),
+        }}
+      />
       
-      {/* This will hide the potential index tab but still allow the file to exist if needed */}
+      {/* This will hide the index tab */}
       <Tabs.Screen
         name="index"
         options={{
-          href: null, // This prevents the tab from being rendered
+          href: null,
         }}
       />
     </Tabs>
