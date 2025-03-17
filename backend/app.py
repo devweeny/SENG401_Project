@@ -110,10 +110,16 @@ def generate():
 def add_recipe():
     email = get_jwt_identity()
     user_id = database.get_user_id(email)
-    name = request.form['name']
-    ingredients = request.form['ingredients']
-    instructions = request.form['instructions']
-    database.add_recipe(user_id, name, ingredients, instructions)
+    data = request.get_json()
+
+    name = data.get('title')
+    source = data.get('source')
+    ingredients = data.get('ingredients')
+    instructions = data.get('instructions')
+
+    app.logger.info(f"Adding recipe: '{name}', '{source}', '{ingredients}', '{instructions}'")
+
+    database.add_recipe(user_id, name, ingredients, instructions, source)
     response = jsonify({"message": "Recipe added successfully"})
     return response, 200
 

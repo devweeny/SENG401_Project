@@ -94,13 +94,13 @@ export default function SwipeScreen() {
         const token = await AsyncStorage.getItem('token'); 
   
         // Send the liked recipe to the backend
-        const response = await fetch('https://localhost:5000', { //This needs to be changed to the appropriate backend link
+        const response = await fetch('https://seng401.devweeny.ca/add_recipe', { //This needs to be changed to the appropriate backend link
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({ recipe }),
+          body: JSON.stringify(recipe),
         });
   
         if (!response.ok) {

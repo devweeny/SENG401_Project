@@ -2,8 +2,9 @@
 import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, TextInput, ScrollView, ActivityIndicator, Modal } from "react-native"
 import { router } from "expo-router"
 import { Ionicons } from "@expo/vector-icons"
-import React, { useState, useEffect } from "react"
+import React, { useEffect, useState } from "react"
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useFocusEffect } from "@react-navigation/native"
 
 // Define recipe type
 interface Recipe {
@@ -22,9 +23,11 @@ export default function MyMealsScreen() {
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
 
-  useEffect(() => {
-    loadSavedRecipes();
-  }, []);
+  useFocusEffect(
+    React.useCallback(() => {
+      loadSavedRecipes();
+    }, [])
+  );
 
   useEffect(() => {
     // Filter recipes when search query changes
@@ -46,17 +49,28 @@ export default function MyMealsScreen() {
       const token = await AsyncStorage.getItem("token"); // Retrieve JWT token if required
       let recipes = [];
   
-      const response = await fetch("https://localhost:5000", {//This needs to be changed to the appropriate backend link
+      const response = await fetch("https://seng401.devweeny.ca/get_recipes", {
+        //This needs to be changed to the appropriate backend link
         method: "GET",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`, 
+          Authorization: `Bearer ${token}`,
         },
       });
   
       if (response.ok) {
         const data = await response.json();
         recipes = data.recipes; // Ensure backend returns { recipes: [...] }
+        if (recipes[0].name !== null) {
+          recipes = recipes.map((recipe: any) => {
+            return {
+              title: recipe.name,
+              ingredients: recipe.ingredients,
+              instructions: recipe.instructions,
+              source: recipe.source,
+            };
+          });
+        }
         await AsyncStorage.setItem("likedRecipes", JSON.stringify(recipes)); // Save to local storage
       } else {
         console.warn("Failed to fetch from backend, falling back to local storage.");
