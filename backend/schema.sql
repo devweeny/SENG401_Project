@@ -27,3 +27,7 @@ CREATE TABLE recipes (
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
 
+CREATE DATABASE IF NOT EXISTS mealmatcher;
+CREATE USER 'mealmatcher'@'localhost' IDENTIFIED BY 'password';
+GRANT ALL PRIVILEGES ON mealmatcher.* TO 'mealmatcher'@'localhost';
+FLUSH PRIVILEGES;
