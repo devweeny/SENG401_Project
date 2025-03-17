@@ -43,11 +43,11 @@ def register(email, name, password):
     conn.close()
     return True
 
-def add_recipe(user_id, name, ingredients, instructions, source):
+def add_recipe(user_id, name, ingredients, instructions, source, prep_time, cook_time, difficulty):
     cursor = get_connection().cursor()
     cursor.execute(
-        "INSERT INTO recipes (user_id, name, ingredients, instructions) VALUES (%s, %s, %s, %s)",
-        (user_id, name, "@".join(ingredients), "@".join(instructions)),
+        "INSERT INTO recipes (user_id, name, ingredients, instructions, prep_time, cook_time, difficulty) VALUES (%s, %s, %s, %s, %s, %s, %s)",
+        (user_id, name, "@".join(ingredients), "@".join(instructions), prep_time, cook_time, difficulty),
     )
     conn.commit()
     cursor.close()
@@ -60,6 +60,9 @@ def get_recipes(user_id):
     for recipe in recipes:
         recipe["ingredients"] = recipe["ingredients"].split("@")
         recipe["instructions"] = recipe["instructions"].split("@")
+        recipe["preparation_time"] = recipe["preparation_time"].split("@")
+        recipe["cooking_time"] = recipe["cooking_time"].split("@")
+        recipe["difficulty"] = recipe["difficulty"].split("@")
     cursor.close()
     return recipes
 
