@@ -4,6 +4,7 @@ import { router } from "expo-router"
 import { Ionicons } from "@expo/vector-icons"
 import React, { useState, useEffect } from "react"
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useFocusEffect } from "@react-navigation/native"
 
 // Define recipe type
 interface Recipe {
@@ -22,9 +23,11 @@ export default function MyMealsScreen() {
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
 
-  useEffect(() => {
-    loadSavedRecipes();
-  }, []);
+  useFocusEffect(
+    React.useCallback(() => {
+      loadSavedRecipes();
+    }, [])
+  );
 
   useEffect(() => {
     // Filter recipes when search query changes
