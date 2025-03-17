@@ -110,12 +110,27 @@ def generate():
 def add_recipe():
     email = get_jwt_identity()
     user_id = database.get_user_id(email)
-    name = request.form['name']
-    ingredients = request.form['ingredients']
-    instructions = request.form['instructions']
-    database.add_recipe(user_id, name, ingredients, instructions)
+    data = request.get_json()
+
+    name = data.get('title')
+    source = data.get('source')
+    ingredients = data.get('ingredients')
+    instructions = data.get('instructions')
+
+    app.logger.info(f"Adding recipe: '{name}', '{source}', '{ingredients}', '{instructions}'")
+
+    database.add_recipe(user_id, name, ingredients, instructions, source)
     response = jsonify({"message": "Recipe added successfully"})
     return response, 200
+
+@app.route("/get_recipes", methods=['GET'])
+@cross_origin()
+@jwt_required()
+def get_recipes():
+    email = get_jwt_identity() #maybe not needed?
+    user_id = database.get_user_id(email)
+    recipes = database.get_recipes(user_id)
+    return jsonify({"recipes": recipes}), 200
 
 @app.route("/profile", methods=['PUT'])
 @cross_origin()
