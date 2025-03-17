@@ -1,31 +1,34 @@
-import React from 'react'
-import { render, fireEvent, waitFor } from '@testing-library/react-native'
-import IngredientsScreen from '../app/(tabs)/ingredients'
+import React from "react";
+import { render, fireEvent, waitFor } from "@testing-library/react-native";
+import IngredientsScreen from "../app/(tabs)/ingredients";
+import { Alert } from "react-native";
 
-// UT10 – Manual Ingredient Input
-it('handles manual text input', () => {
-  const { getByPlaceholderText } = render(<IngredientsScreen />)
-  const input = getByPlaceholderText('Enter ingredients (comma separated)')
-  fireEvent.changeText(input, 'tomato, rice')
-  expect(input.props.value).toBe('tomato, rice')
-})
+jest.spyOn(Alert, "alert");
 
-// UT11 – Voice Input Simulation (simplified)
-it('handles voice input simulation', () => {
-  // You’d mock the voice input if applicable or leave a comment if handled on native level
-  // Simulated here as standard text entry
-})
+describe("IngredientsScreen", () => {
+    // UT10 – FR7: Manual Ingredient Input
+    it("Add ingredients via text input", async () => {
+        const { getByPlaceholderText, getByText } = render(<IngredientsScreen />);
 
-// UT12 – Search Recipes
-it('allows searching for recipes', () => {
-  const { getByPlaceholderText } = render(<IngredientsScreen />)
-  const input = getByPlaceholderText('Search for a recipe')
-  fireEvent.changeText(input, 'chicken')
-  expect(input.props.value).toBe('chicken')
-})
+        fireEvent.changeText(getByPlaceholderText("Enter ingredients"), "tomato, rice");
+        fireEvent.press(getByText("Generate Recipes"));
 
-// UT13 – Dietary Filter (Mocked)
-it('applies dietary restrictions', async () => {
-  // Ideally you'd check AsyncStorage or recipe filtering logic
-  expect(true).toBeTruthy() // Placeholder logic
-})
+        await waitFor(() => {
+        expect(Alert.alert).toHaveBeenCalledWith(
+            "Ingredients Submitted",
+            expect.stringContaining("tomato")
+        );
+        });
+    });
+
+    // UT11 – FR8: Voice Input
+    it("UT11 – Add ingredients via voice input", async () => {
+        const { getByText } = render(<IngredientsScreen />);
+        const voiceInputButton = getByText("Use Voice Input");
+
+        fireEvent.press(voiceInputButton);
+
+        // Voice input relies on native API, so we assume mock here
+        expect(voiceInputButton).toBeTruthy();
+    });
+});

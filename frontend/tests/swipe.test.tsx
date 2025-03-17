@@ -1,15 +1,55 @@
-import React from 'react'
-import { render } from '@testing-library/react-native'
-import SwipeScreen from '../app/(tabs)/swipe'
+import React from "react";
+import { render, fireEvent, waitFor } from "@testing-library/react-native";
+import SwipeScreen from "../app/(tabs)/swipe";
+import { Alert } from "react-native";
 
-// UT15 – Swipe Right to Save
-it('swipe right should save recipe (mocked)', () => {
-  // Requires mocking gestures/animation - add testID to simulate properly
-  expect(true).toBeTruthy()
-})
+jest.spyOn(Alert, "alert");
 
-// UT16 – Swipe Left to Discard
-it('swipe left should discard recipe (mocked)', () => {
-  // Similar to above – mock PanResponder or unit test internal functions
-  expect(true).toBeTruthy()
-})
+describe("SwipeScreen", () => {
+    // UT15 – FR12: Swipe Right to Save Recipe
+    it("UT15 – Swipe right saves recipe", async () => {
+        const { getByText } = render(<SwipeScreen />);
+        fireEvent.press(getByText("Swipe Right"));
+
+        await waitFor(() => {
+        expect(Alert.alert).toHaveBeenCalledWith(
+            "Saved",
+            "Recipe added to favorites."
+        );
+        });
+    });
+
+    // UT16 – FR13: Swipe Left to Discard Recipe
+    it("UT16 – Swipe left discards recipe", async () => {
+        const { getByText } = render(<SwipeScreen />);
+        fireEvent.press(getByText("Swipe Left"));
+
+        await waitFor(() => {
+        expect(Alert.alert).toHaveBeenCalledWith(
+            "Discarded",
+            "Recipe removed."
+        );
+        });
+    });
+
+    // UT17 – FR14: View Favorites
+    it("UT17 – View Favorites", () => {
+        const { getByText } = render(<SwipeScreen />);
+        fireEvent.press(getByText("Favorites"));
+
+        expect(getByText("Your Favorite Recipes")).toBeTruthy();
+    });
+
+    // UT18 – FR15: Remove from Favorites
+    it("UT18 – Remove from Favorites", async () => {
+        const { getByText } = render(<SwipeScreen />);
+        fireEvent.press(getByText("Remove"));
+
+        await waitFor(() => {
+        expect(Alert.alert).toHaveBeenCalledWith(
+            "Removed",
+            "Recipe deleted from favorites."
+        );
+        });
+    });
+});

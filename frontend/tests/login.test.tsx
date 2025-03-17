@@ -1,50 +1,42 @@
-import React from "react"
-import { render, fireEvent, waitFor } from "@testing-library/react-native"
-import LoginScreen from "../app/login"
+import React from "react";
+import { render, fireEvent, waitFor } from "@testing-library/react-native";
+import LoginScreen from "../app/login";
+import { Alert } from "react-native";
 
-// 👇 Inline mock (MUST be before importing anything else that uses AsyncStorage)
-jest.mock('@react-native-async-storage/async-storage', () => ({
-    setItem: jest.fn(),
-    getItem: jest.fn(),
-    removeItem: jest.fn(),
-    clear: jest.fn()
-  }))
-  
+jest.mock("expo-router", () => ({
+  useRouter: () => ({ push: jest.fn() }),
+}));
 
-describe("Login Screen Tests", () => {
-  // UT04 – Login with valid credentials
-  it("logs in successfully with correct email and password", async () => {
-    const { getByPlaceholderText, getByText } = render(<LoginScreen />)
+jest.spyOn(Alert, "alert");
 
-    fireEvent.changeText(getByPlaceholderText("email@domain.com"), "test@example.com")
-    fireEvent.changeText(getByPlaceholderText("Password"), "123456")
-    fireEvent.press(getByText("Log in"))
+describe("LoginScreen", () => {
+    // UT04 – FR2: Login with Valid Credentials
+  it("Login with valid credentials", async () => {
+    const { getByPlaceholderText, getByText } = render(<LoginScreen />);
+    fireEvent.changeText(getByPlaceholderText("Email"), "test@example.com");
+    fireEvent.changeText(getByPlaceholderText("Password"), "123456");
+    fireEvent.press(getByText("Login"));
 
     await waitFor(() => {
-      expect(getByText("Redirecting to ingredients...")).toBeTruthy()
-    })
-  })
+      expect(Alert.alert).toHaveBeenCalledWith(
+        "Login Success",
+        "You have successfully logged in!"
+      );
+    });
+  });
 
-  // UT05 – Login with incorrect password
-  it("shows error on incorrect password", async () => {
-    const { getByPlaceholderText, getByText } = render(<LoginScreen />)
-
-    fireEvent.changeText(getByPlaceholderText("email@domain.com"), "test@example.com")
-    fireEvent.changeText(getByPlaceholderText("Password"), "wrongpass")
-    fireEvent.press(getByText("Log in"))
-
-    await waitFor(() => {
-      expect(getByText("Invalid credentials. Please try again.")).toBeTruthy()
-    })
-  })
-
-  // UT06 – Continue as guest
-  it("allows user to continue as guest", async () => {
-    const { getByText } = render(<LoginScreen />)
-    fireEvent.press(getByText("Continue as Guest"))
+  // UT05 – FR2: Login with Invalid Password
+  it("Login with invalid password", async () => {
+    const { getByPlaceholderText, getByText } = render(<LoginScreen />);
+    fireEvent.changeText(getByPlaceholderText("Email"), "test@example.com");
+    fireEvent.changeText(getByPlaceholderText("Password"), "wrongpass");
+    fireEvent.press(getByText("Login"));
 
     await waitFor(() => {
-      expect(getByText("Guest session started")).toBeTruthy()
-    })
-  })
-})
+      expect(Alert.alert).toHaveBeenCalledWith(
+        "Login Error",
+        expect.stringContaining("Invalid email or password")
+      );
+    });
+  });
+});

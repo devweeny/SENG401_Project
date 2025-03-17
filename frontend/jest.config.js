@@ -1,16 +1,16 @@
 module.exports = {
-    preset: "react-native",
+    preset: 'jest-expo',
     transform: {
-      "^.+\\.(js|jsx|ts|tsx)$": "babel-jest"
+      '^.+\\.[jt]sx?$': 'babel-jest',
     },
+    setupFilesAfterEnv: ['@testing-library/jest-native/extend-expect'],
     transformIgnorePatterns: [
-      "node_modules/(?!(jest-)?react-native|@react-native|@react-navigation|@react-native-async-storage|@react-native-community)"
+      "node_modules/(?!(jest-)?@?react-native|@react-navigation|@react-native-community|expo|expo-modules-core|@expo)"
     ],
-    moduleFileExtensions: ["ts", "tsx", "js", "jsx", "json", "node"],
-    setupFilesAfterEnv: ["@testing-library/jest-native/extend-expect"],
-    testEnvironment: "jsdom",
-    transformIgnorePatterns: [
-        "node_modules/(?!(jest-)?react-native|@react-native|@react-navigation|expo-router|@react-native-async-storage|@react-native-community)"
-      ]
-  }
+    moduleNameMapper: {
+        "^@react-native-async-storage/async-storage$": "<rootDir>/__mocks__/async-storage.js"
+      },
+      
+    testMatch: ['**/tests/**/*.test.ts?(x)'],
+  };
   

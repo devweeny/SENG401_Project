@@ -1,5 +1,5 @@
+// babel.config.js
 module.exports = {
-    presets: ["module:metro-react-native-babel-preset"], 
-    plugins: ["transform-flow-strip-types"]
-  }
+    presets: ['babel-preset-expo', '@babel/preset-env', '@babel/preset-typescript'],
+  };
   

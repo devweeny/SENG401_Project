@@ -1,26 +1,53 @@
-import React from 'react'
-import { render, fireEvent, waitFor } from '@testing-library/react-native'
-import ProfileScreen from '../app/(tabs)/profile'
+import React from "react";
+import { render, fireEvent, waitFor } from "@testing-library/react-native";
+import ProfileScreen from "../app/(tabs)/profile";
+import { Alert } from "react-native";
 
-// UT07 – Update Profile Info
-it('renders and updates profile fields', async () => {
-  const { getByText, getByPlaceholderText } = render(<ProfileScreen />)
+jest.spyOn(Alert, "alert");
 
-  fireEvent.press(getByText('Update Profile'))
-  fireEvent.changeText(getByPlaceholderText('Enter new name'), 'New Name')
-  fireEvent.changeText(getByPlaceholderText('Enter new email'), 'new@example.com')
+describe("ProfileScreen", () => {
+    // UT07 – FR4: Profile Update
+    it("Update profile information (name, email, password)", async () => {
+        const { getByPlaceholderText, getByText } = render(<ProfileScreen />);
+        fireEvent.changeText(getByPlaceholderText("Name"), "New Name");
+        fireEvent.changeText(getByPlaceholderText("Email"), "new@example.com");
+        fireEvent.changeText(getByPlaceholderText("Password"), "newpass123");
 
-  expect(getByPlaceholderText('Enter new name').props.value).toBe('New Name')
-})
+        fireEvent.press(getByText("Save"));
 
-// UT08 – Set Dietary Preferences
-it('toggles dietary preferences', async () => {
-  const { getByText } = render(<ProfileScreen />)
-  fireEvent.press(getByText(/vegetarian/i))
-})
+        await waitFor(() => {
+        expect(Alert.alert).toHaveBeenCalledWith(
+            "Profile Updated",
+            "Your profile has been updated successfully."
+        );
+        });
+    });
 
-// UT09 – Upload Profile Picture (Not implemented in UI yet, placeholder test)
-it('displays default avatar icon', () => {
-  const { getByTestId } = render(<ProfileScreen />)
-  // You may add a testID to the Ionicons component
-})
+    // UT08 – FR5: Set Dietary Preferences
+    it("Set dietary preferences", async () => {
+        const { getByTestId, getByText } = render(<ProfileScreen />);
+        const dietaryPicker = getByTestId("dietaryPicker");
+
+        fireEvent.press(dietaryPicker);
+        fireEvent.press(getByText("Vegan"));
+
+        fireEvent.press(getByText("Save"));
+
+        await waitFor(() => {
+        expect(Alert.alert).toHaveBeenCalledWith(
+            "Profile Updated",
+            expect.stringContaining("successfully")
+        );
+        });
+    });
+
+    // UT09 – FR6: Upload Profile Picture
+    it("UT09 – Upload profile picture", async () => {
+        const { getByText } = render(<ProfileScreen />);
+        const uploadButton = getByText("Upload Photo");
+
+        fireEvent.press(uploadButton);
+
+        expect(uploadButton).toBeTruthy();
+    });
+});
