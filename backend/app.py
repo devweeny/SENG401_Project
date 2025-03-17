@@ -1,3 +1,4 @@
+import random
 from flask import Flask, jsonify, request
 from flask_cors import CORS, cross_origin
 from flask_jwt_extended import JWTManager, create_access_token, get_jwt_identity, jwt_required
@@ -66,6 +67,22 @@ def register():
     response.headers.add('Access-Control-Allow-Origin', '*')
     return response, 400
 
+@app.route("/guest", methods=['GET'])
+def guest():
+    id = random.randint(0, 1000000)
+    email = f"guest{id}@devweeny.ca"
+    name = "Guest User"
+    token = create_access_token(identity=email)
+    user_json = {
+        "id": id,
+        "email": email,
+        "name": "Guest User",
+        "token": token
+    }
+    database.register(email, name, email)
+    response = jsonify(user_json)
+    return response, 200
+
 
 """
 Request format:
@@ -93,6 +110,11 @@ def generate():
     print(request.headers)
 
     ingredients = request.form.get('ingredients').strip().split(",")
+    email = get_jwt_identity()
+    user_id = database.get_user_id(email)
+    if not user_id or not email:
+        response = jsonify({"message": "Invalid user"})
+        return response, 401
 
     try:
         loop = asyncio.get_event_loop()
