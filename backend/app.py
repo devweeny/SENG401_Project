@@ -6,6 +6,7 @@ import database
 import gemini
 import asyncio
 import os
+import re
 
 app = Flask(__name__)
 cors = CORS(app)
@@ -50,12 +51,24 @@ def login():
     response.headers.add('Access-Control-Allow-Origin', '*')
     return response, 401
 
+def is_valid_email(email):
+    pattern = r"^[\w\.-]+@[\w\.-]+\.\w+$"
+    return re.match(pattern, email)
+
+def is_valid_password(password):
+    return len(password) >= 6
+
 @app.route("/register", methods=['POST'])
 def register():
     email = request.form['email']
     name = request.form['name']
     password = request.form['password']
 
+    if not is_valid_email(email):
+        return jsonify({"message": "Invalid email format"}), 400
+    
+    if not is_valid_password(password):
+        return jsonify({"message": "Password too short"}), 400
 
     if database.register(email, name, password):
         response = jsonify({"message": "You are registered"})
