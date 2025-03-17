@@ -2,6 +2,15 @@ import React from "react"
 import { render, fireEvent, waitFor } from "@testing-library/react-native"
 import LoginScreen from "../app/login"
 
+// 👇 Inline mock (MUST be before importing anything else that uses AsyncStorage)
+jest.mock('@react-native-async-storage/async-storage', () => ({
+    setItem: jest.fn(),
+    getItem: jest.fn(),
+    removeItem: jest.fn(),
+    clear: jest.fn()
+  }))
+  
+
 describe("Login Screen Tests", () => {
   // UT04 – Login with valid credentials
   it("logs in successfully with correct email and password", async () => {
