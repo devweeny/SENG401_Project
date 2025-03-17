@@ -67,8 +67,24 @@ export default function LoginScreen() {
 
   const handleGuest = async () => {
     try {
-      await AsyncStorage.setItem("loggedIn", "true"); 
-      await AsyncStorage.setItem("user", JSON.stringify({ guest: true })); 
+      const response = await fetch("https://seng401.devweeny.ca/guest", {
+        method: "GET",
+        headers: {
+          Accept: "application/json",
+        },
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        await AsyncStorage.setItem("loggedIn", "true");
+        await AsyncStorage.setItem("token", data["token"]);
+        await AsyncStorage.setItem("user", JSON.stringify(data));
+        router.replace("/ingredients");
+      } else {
+        alert(data.message || "Guest login failed, please try again or contact an administrator.");
+      }
+
       router.replace("/ingredients"); 
     } catch (error: any) {
       alert(error.message || "An error occurred while continuing as a guest.");
