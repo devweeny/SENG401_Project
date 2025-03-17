@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState } from "react"
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView } from "react-native"
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, Alert } from "react-native"
 import AsyncStorage from "@react-native-async-storage/async-storage"
 import { useRouter } from "expo-router"
 
@@ -11,9 +11,24 @@ export default function RegisterScreen() {
   const [name, setName] = useState("")
   const [password, setPassword] = useState("")
 
+  const isValidEmail = (email: string) => {
+    const pattern = /^[\w\.-]+@[\w\.-]+\.\w+$/;
+    return pattern.test(email);
+  };
+
   const handleRegister = async () => {
     if (!email || !password || !name) {
-      alert("Please enter email, name and password.")
+      Alert.alert("Please enter email, name and password.")
+      return
+    }
+
+    if (!isValidEmail(email)) {
+      Alert.alert("Invalid email format.")
+      return
+    }
+
+    if (password.length < 6) {
+      Alert.alert("Password must be at least 6 characters long.")
       return
     }
 
@@ -35,14 +50,14 @@ export default function RegisterScreen() {
       console.log(data)
       if (response.ok) {
         await AsyncStorage.setItem("user", JSON.stringify(data))
-        alert("Account created! You can now log in.")
+        Alert.alert("Account created! You can now log in.")
         router.push("/login")
       } else {
-        alert(data.message || "Registration failed")
+        Alert.alert(data.message || "Registration failed")
       }
     } catch (error: unknown) {
       console.error(error)
-      alert(error instanceof Error ? error.message : "Network error occurred")
+      Alert.alert(error instanceof Error ? error.message : "Network error occurred")
     }
   }
 

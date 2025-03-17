@@ -39,7 +39,7 @@ describe("MyMealsScreen", () => {
     });
 
     // UT14 – FR11: Recipe Recommendation
-    it("UT14 – Generate recipe recommendation", async () => {
+    it("Generate recipe recommendation", async () => {
         const { getByText } = render(<MyMealsScreen />);
         fireEvent.press(getByText("Get Recommendation"));
 

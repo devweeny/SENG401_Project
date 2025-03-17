@@ -1,8 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { StyleSheet, Animated, PanResponder, View, Dimensions, TouchableOpacity, ActivityIndicator, ScrollView } from 'react-native';
-import { router } from 'expo-router';
+import { StyleSheet, Animated, PanResponder, View, Dimensions, TouchableOpacity, ActivityIndicator, ScrollView, Text, Alert } from 'react-native';
+import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from "@expo/vector-icons";
+import { act } from 'react-test-renderer';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SWIPE_THRESHOLD = 120;
@@ -26,6 +27,7 @@ export default function SwipeScreen() {
     outputRange: ['-10deg', '0deg', '10deg'],
     extrapolate: 'clamp'
   });
+  const router = useRouter();
 
   useEffect(() => {
     const loadData = async () => {
@@ -42,7 +44,9 @@ export default function SwipeScreen() {
         if (!loadedRecipes || loadedRecipes.length === 0) {
           console.log("No recipes found, using fallback");
           // Redirect back to ingredients
-          router.replace('/(tabs)/ingredients');
+          act(() => {
+            router.replace('/(tabs)/ingredients');
+          });
           return;
         }
         
@@ -56,7 +60,9 @@ export default function SwipeScreen() {
       } catch (error) {
         console.error("Error loading recipes:", error);
       } finally {
-        setIsLoading(false);
+        act(() => {
+          setIsLoading(false);
+        });
       }
     };
     
@@ -93,6 +99,8 @@ export default function SwipeScreen() {
       const newLikedRecipes = [...likedRecipes, recipe];
       setLikedRecipes(newLikedRecipes);
       AsyncStorage.setItem('likedRecipes', JSON.stringify(newLikedRecipes));
+      console.log("Recipe saved:", recipe.title);
+      Alert.alert("Saved", "Recipe added to favorites.");
       
       Animated.timing(position, {
         toValue: { x: SCREEN_WIDTH + 100, y: 0 },
@@ -105,13 +113,19 @@ export default function SwipeScreen() {
   };
 
   const swipeLeft = () => {
-    Animated.timing(position, {
-      toValue: { x: -SCREEN_WIDTH - 100, y: 0 },
-      duration: 250,
-      useNativeDriver: false
-    }).start(() => {
-      nextCard();
-    });
+    if (currentIndex < recipes.length) {
+      const recipe = recipes[currentIndex];
+      console.log("Recipe discarded:", recipe.title);
+      Alert.alert("Discarded", "Recipe removed.");
+      
+      Animated.timing(position, {
+        toValue: { x: -SCREEN_WIDTH - 100, y: 0 },
+        duration: 250,
+        useNativeDriver: false
+      }).start(() => {
+        nextCard();
+      });
+    }
   };
 
   const nextCard = () => {
@@ -245,10 +259,6 @@ export default function SwipeScreen() {
     </View>
   );
 }
-
-const Text = ({ style, ...props }: { style?: any } & React.ComponentProps<typeof Animated.Text>) => {
-  return <Animated.Text style={[{ color: '#333' }, style]} {...props} />;
-};
 
 const styles = StyleSheet.create({
   container: {
