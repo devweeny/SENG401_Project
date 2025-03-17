@@ -4,7 +4,6 @@ import { router } from "expo-router"
 import { Ionicons } from "@expo/vector-icons"
 import React, { useState, useEffect } from "react"
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useFocusEffect } from "@react-navigation/native"
 
 // Define recipe type
 interface Recipe {
@@ -23,11 +22,9 @@ export default function MyMealsScreen() {
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
 
-  useFocusEffect(
-    React.useCallback(() => {
-      loadSavedRecipes();
-    }, [])
-  );
+  useEffect(() => {
+    loadSavedRecipes();
+  }, []);
 
   useEffect(() => {
     // Filter recipes when search query changes
@@ -44,19 +41,47 @@ export default function MyMealsScreen() {
 
   const loadSavedRecipes = async () => {
     try {
-      const savedJson = await AsyncStorage.getItem('likedRecipes');
+      setIsLoading(true);
+      
+      const token = await AsyncStorage.getItem("token"); // Retrieve JWT token if required
+      let recipes = [];
+  
+      const response = await fetch("https://localhost:5000", {//This needs to be changed to the appropriate backend link
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`, 
+        },
+      });
+  
+      if (response.ok) {
+        const data = await response.json();
+        recipes = data.recipes; // Ensure backend returns { recipes: [...] }
+        await AsyncStorage.setItem("likedRecipes", JSON.stringify(recipes)); // Save to local storage
+      } else {
+        console.warn("Failed to fetch from backend, falling back to local storage.");
+        const savedJson = await AsyncStorage.getItem("likedRecipes");
+        if (savedJson) {
+          recipes = JSON.parse(savedJson);
+        }
+      }
+  
+      setSavedRecipes(recipes);
+      setFilteredRecipes(recipes);
+    } catch (error) {
+      console.error("Error loading saved recipes:", error);
+      // If an error occurs, still attempt to load from local storage
+      const savedJson = await AsyncStorage.getItem("likedRecipes");
       if (savedJson) {
         const recipes = JSON.parse(savedJson);
         setSavedRecipes(recipes);
         setFilteredRecipes(recipes);
       }
-    } catch (error) {
-      console.error("Error loading saved recipes:", error);
     } finally {
       setIsLoading(false);
     }
   };
-
+  
   const handleRemoveRecipe = async (recipeToRemove: Recipe) => {
     try {
       const updatedRecipes = savedRecipes.filter(recipe => recipe.title !== recipeToRemove.title);

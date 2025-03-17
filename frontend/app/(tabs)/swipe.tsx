@@ -85,22 +85,45 @@ export default function SwipeScreen() {
     }).start();
   };
 
-  const swipeRight = () => {
+  const swipeRight = async () => {
     if (currentIndex < recipes.length) {
       const recipe = recipes[currentIndex];
-      const newLikedRecipes = [...likedRecipes, recipe];
-      setLikedRecipes(newLikedRecipes);
-      AsyncStorage.setItem('likedRecipes', JSON.stringify(newLikedRecipes));
-      
-      Animated.timing(position, {
-        toValue: { x: SCREEN_WIDTH + 100, y: 0 },
-        duration: 250,
-        useNativeDriver: false
-      }).start(() => {
-        nextCard();
-      });
+  
+      try {
+        // Get the user token
+        const token = await AsyncStorage.getItem('token'); 
+  
+        // Send the liked recipe to the backend
+        const response = await fetch('https://localhost:5000', { //This needs to be changed to the appropriate backend link
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ recipe }),
+        });
+  
+        if (!response.ok) {
+          throw new Error('Failed to save recipe');
+        }
+  
+        const newLikedRecipes = [...likedRecipes, recipe];
+        setLikedRecipes(newLikedRecipes);
+        await AsyncStorage.setItem('likedRecipes', JSON.stringify(newLikedRecipes));
+  
+        Animated.timing(position, {
+          toValue: { x: SCREEN_WIDTH + 100, y: 0 },
+          duration: 250,
+          useNativeDriver: false,
+        }).start(() => {
+          nextCard();
+        });
+      } catch (error) {
+        console.error('Error saving recipe:', error);
+      }
     }
   };
+  
 
   const swipeLeft = () => {
     Animated.timing(position, {
