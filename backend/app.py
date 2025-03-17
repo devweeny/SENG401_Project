@@ -117,6 +117,15 @@ def add_recipe():
     response = jsonify({"message": "Recipe added successfully"})
     return response, 200
 
+@app.route("/get_recipes", methods=['GET'])
+@cross_origin()
+@jwt_required()
+def get_recipes():
+    email = get_jwt_identity() #maybe not needed?
+    user_id = database.get_user_id(email)
+    recipes = database.get_recipes(user_id)
+    return jsonify({"recipes": recipes}), 200
+
 @app.route("/profile", methods=['PUT'])
 @cross_origin()
 @jwt_required()
