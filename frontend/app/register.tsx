@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState } from "react"
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView } from "react-native"
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, Alert } from "react-native"
 import AsyncStorage from "@react-native-async-storage/async-storage"
 import { useRouter } from "expo-router"
 
@@ -63,14 +63,14 @@ export default function RegisterScreen() {
       console.log(data)
       if (response.ok) {
         await AsyncStorage.setItem("user", JSON.stringify(data))
-        alert("Account created! You can now log in.")
+        Alert.alert("Account created! You can now log in.")
         router.push("/login")
       } else {
-        alert(data.message || "Registration failed")
+        Alert.alert(data.message || "Registration failed")
       }
     } catch (error: unknown) {
       console.error(error)
-      alert(error instanceof Error ? error.message : "Network error occurred")
+      Alert.alert(error instanceof Error ? error.message : "Network error occurred")
     }
   }
 

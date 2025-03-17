@@ -69,7 +69,7 @@ def register():
         return jsonify({"message": "Invalid email format"}), 400
     
     if not is_valid_password(password):
-        return jsonify({"message": "Password too short"}), 400
+        return jsonify({"message": "Password must be at least 6 characters long"}), 400
 
     if database.register(email, name, password):
         response = jsonify({"message": "You are registered"})

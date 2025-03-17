@@ -22,7 +22,7 @@ describe("IngredientsScreen", () => {
     });
 
     // UT11 – FR8: Voice Input
-    it("UT11 – Add ingredients via voice input", async () => {
+    it("Add ingredients via voice input", async () => {
         const { getByText } = render(<IngredientsScreen />);
         const voiceInputButton = getByText("Use Voice Input");
 

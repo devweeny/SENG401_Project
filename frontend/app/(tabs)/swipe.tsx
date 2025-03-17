@@ -126,13 +126,19 @@ export default function SwipeScreen() {
   
 
   const swipeLeft = () => {
-    Animated.timing(position, {
-      toValue: { x: -SCREEN_WIDTH - 100, y: 0 },
-      duration: 250,
-      useNativeDriver: false
-    }).start(() => {
-      nextCard();
-    });
+    if (currentIndex < recipes.length) {
+      const recipe = recipes[currentIndex];
+      console.log("Recipe discarded:", recipe.title);
+      Alert.alert("Discarded", "Recipe removed.");
+      
+      Animated.timing(position, {
+        toValue: { x: -SCREEN_WIDTH - 100, y: 0 },
+        duration: 250,
+        useNativeDriver: false
+      }).start(() => {
+        nextCard();
+      });
+    }
   };
 
   const nextCard = () => {
@@ -266,10 +272,6 @@ export default function SwipeScreen() {
     </View>
   );
 }
-
-const Text = ({ style, ...props }: { style?: any } & React.ComponentProps<typeof Animated.Text>) => {
-  return <Animated.Text style={[{ color: '#333' }, style]} {...props} />;
-};
 
 const styles = StyleSheet.create({
   container: {
