@@ -1,35 +1,28 @@
-import React from "react"
-import { render, waitFor } from "@testing-library/react-native"
-import AsyncStorage from "@react-native-async-storage/async-storage"
-import IndexScreen from "../app/index"
-import { useRouter } from "expo-router"
+
+import React from "react";
+import { render, fireEvent } from "@testing-library/react-native";
+import IndexScreen from "../app/index";
 
 jest.mock("expo-router", () => ({
-  useRouter: jest.fn(),
-}))
+  useRouter: () => ({
+    push: jest.fn(),
+  }),
+}));
 
-const mockRouter = useRouter()
+describe("IndexScreen", () => {
+    // UT06 – FR3: Guest Access
+    it("Continue as Guest navigates to homepage", () => {
+        const mockPush = jest.fn();
+        jest.mock("expo-router", () => ({
+        useRouter: () => ({
+            push: mockPush,
+        }),
+    }));
 
-describe("Index Screen Navigation Tests", () => {
-  // UT25 – Auto-redirect to ingredients page when logged in
-  it("redirects to ingredients screen if user is logged in", async () => {
-    AsyncStorage.getItem = jest.fn(() => Promise.resolve("true"))
+    const { getByText } = render(<IndexScreen />);
+    const guestButton = getByText("Continue as Guest");
 
-    render(<IndexScreen />)
-
-    await waitFor(() => {
-      expect(mockRouter.push).toHaveBeenCalledWith("/ingredients")
-    })
-  })
-
-  // UT26 – Redirect to login screen if no login token exists
-  it("redirects to login screen if user is not logged in", async () => {
-    AsyncStorage.getItem = jest.fn(() => Promise.resolve(null))
-
-    render(<IndexScreen />)
-
-    await waitFor(() => {
-      expect(mockRouter.push).toHaveBeenCalledWith("/login")
-    })
-  })
-})
+    fireEvent.press(guestButton);
+    expect(mockPush).toHaveBeenCalledWith("/ingredients");
+  });
+});
