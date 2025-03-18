@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState } from "react"
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView } from "react-native"
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, Alert } from "react-native"
 import AsyncStorage from "@react-native-async-storage/async-storage"
 import { useRouter } from "expo-router"
 
@@ -56,12 +56,13 @@ export default function LoginScreen() {
         await AsyncStorage.setItem("loggedIn", "true")
         await AsyncStorage.setItem("token", data["token"])
         await AsyncStorage.setItem("user", JSON.stringify(data))
+        Alert.alert("Login Success", "You have successfully logged in!")
         router.replace("/ingredients")
       } else {
-        alert(data.message || "Login failed")
+        Alert.alert("Login Error", data.message || "Login failed")
       }
     } catch (error: any) {
-      alert(error.message || "Network error occurred")
+      Alert.alert("Network Error", error.message || "Network error occurred")
     }
   }
 

@@ -50,7 +50,9 @@ def add_recipe(user_id, name, ingredients, instructions, source):
         (user_id, name, "@".join(ingredients), "@".join(instructions)),
     )
     conn.commit()
+    recipe_id = cursor.lastrowid
     cursor.close()
+    return recipe_id
 
 #This will retrieve all recipes for a specific user
 def get_recipes(user_id):
@@ -63,32 +65,35 @@ def get_recipes(user_id):
     cursor.close()
     return recipes
 
-def update_user(user_id, name, email, dietary, password):
-    print(f"Updating user id='{user_id}' name='{name}' email='{email}' dietary='{dietary}' password='{password}'")
+def update_user(user_id, name, email, dietary_preferences, password):
+    print(f"Updating user id='{user_id}' name='{name}' email='{email}' dietary_preferences='{dietary_preferences}' password='{password}'")
     cursor = get_connection().cursor()
 
-    if len(name) == 0:
+    if name is not None and len(name) == 0:
         name = None
-    if len(email) == 0:
+    if email is not None and len(email) == 0:
         email = None
-    if len(dietary) == 0:
-        dietary = None
-    if len(password) == 0:
+    if dietary_preferences is not None and len(dietary_preferences) == 0:
+        dietary_preferences = None
+    if password is not None and len(password) == 0:
         password = None
+
     if name is not None:
         cursor.execute("UPDATE users SET name = %s WHERE user_id = %s", (name, user_id))
     if email is not None:
         cursor.execute("UPDATE users SET email = %s WHERE user_id = %s", (email, user_id))
-    # if dietary is not None:
-    #     cursor.execute("UPDATE users SET dietary_preferences = %s WHERE user_id = %s", (dietary, user_id))
+    if dietary_preferences is not None:
+        cursor.execute("UPDATE users SET dietary_preferences = %s WHERE user_id = %s", (dietary_preferences, user_id))
     if password is not None:
         hashedpw = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt())
         cursor.execute("UPDATE users SET password = %s WHERE user_id = %s", (hashedpw, user_id))
+    
     conn.commit()
     cursor.execute("SELECT * FROM users WHERE user_id = %s", (user_id,))
     user = cursor.fetchone()
     cursor.close()
     conn.close()
+    print(f"Updated user details: {user}")
     return user
 
 def get_user_id(email):
@@ -97,3 +102,19 @@ def get_user_id(email):
     user_id = cursor.fetchone()[0]
     cursor.close()
     return user_id
+
+
+def submit_rating(user_id, recipe_id, rating):
+    try:
+        cursor = get_connection().cursor()
+        cursor.execute(
+            "INSERT INTO ratings (user_id, recipe_id, rating) VALUES (%s, %s, %s)",
+            (user_id, recipe_id, rating)
+        )
+        conn.commit()
+        cursor.close()
+        print(f"Rating submitted: user_id={user_id}, recipe_id={recipe_id}, rating={rating}")
+        return True
+    except Exception as e:
+        print(f"Error submitting rating to database: {e}")
+        return False
