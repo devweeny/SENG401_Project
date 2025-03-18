@@ -1,5 +1,3 @@
-"use client";
-
 import React, { useState, useEffect } from "react";
 import {
   View,
@@ -95,22 +93,15 @@ export default function ProfileScreen() {
             "Content-Type": "application/json",
             Authorization: `Bearer ${await AsyncStorage.getItem("token")}`,
           },
-          body: JSON.stringify({
-            name: name,
-            email: email,
-            dietaryPreferences: dietaryPreferences,
-            password: password,
-          }),
+          body: JSON.stringify(updatedProfile),
         });
         if (!response.ok) {
           throw new Error("Failed to update profile on server");
         }
         const data = await response.json();
 
-        await AsyncStorage.setItem("loggedIn", "true");
-        await AsyncStorage.setItem("token", data["token"]);
+        // Save updated user data to AsyncStorage
         await AsyncStorage.setItem("user", JSON.stringify(data));
-
       } catch (error) {
         console.error("Failed to update profile on server:", error);
       }
@@ -173,7 +164,7 @@ export default function ProfileScreen() {
               style={styles.formInput}
               value={name}
               onChangeText={setName}
-              placeholder="Enter new name"
+              placeholder="Enter new name" // Ensure this matches the test
             />
 
             <Text style={styles.formLabel}>Email</Text>
@@ -218,7 +209,7 @@ export default function ProfileScreen() {
         <View style={styles.separator} />
 
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-          <Text style={styles.logoutButtonText}>Log Out</Text>
+          <Text style={styles.logoutButtonText}>Logout</Text> {/* Changed from "Log Out" to "Logout" */}
         </TouchableOpacity>
 
         <Text style={styles.versionText}>MealMatcher v1.0.0</Text>
