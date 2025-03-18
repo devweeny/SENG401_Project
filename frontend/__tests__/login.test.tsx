@@ -6,7 +6,10 @@ import { Alert } from "react-native";
 const mockPush = jest.fn();
 
 jest.mock("expo-router", () => ({
-  useRouter: () => ({ push: jest.fn() }),
+  useRouter: () => ({
+    push: mockPush,
+    replace: mockPush, // Add replace to the mock
+  }),
 }));
 
 jest.mock("@react-native-async-storage/async-storage", () => ({
@@ -17,6 +20,28 @@ jest.mock("@react-native-async-storage/async-storage", () => ({
 }));
 
 jest.spyOn(Alert, "alert");
+
+beforeEach(() => {
+  global.fetch = jest.fn((url, options) => {
+    if (url === "https://seng401.devweeny.ca/login" && options.method === "POST") {
+      const formData = options.body;
+      if (formData.get("email") === "test@example.com" && formData.get("password") === "123456") {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ token: "mockToken", user: { id: 1, name: "Test User" } }),
+        });
+      }
+    }
+    return Promise.resolve({
+      ok: false,
+      json: () => Promise.resolve({ message: "Invalid email or password" }),
+    });
+  });
+});
+
+afterEach(() => {
+  jest.restoreAllMocks();
+});
 
 describe("LoginScreen", () => {
     // UT04 – FR2: Login with Valid Credentials
@@ -51,12 +76,15 @@ describe("LoginScreen", () => {
 
   // UT06 
   it("Continue as Guest navigates to homepage", async () => {
-      const { getByText } = render(<LoginScreen />);
-      const guestButton = await waitFor(() => getByText("Continue as Guest"), { timeout: 3000 }); // Increase timeout to 3000ms
-      fireEvent.press(guestButton);
+    const { getByText } = render(<LoginScreen />);
     
-      await waitFor(() => {
-        expect(mockPush).toHaveBeenCalledWith("/ingredients");
-      });
+    // Ensure the button is found and pressed
+    const guestButton = await waitFor(() => getByText("Continue as Guest"));
+    fireEvent.press(guestButton);
+  
+    // Verify navigation
+    await waitFor(() => {
+      expect(mockPush).toHaveBeenCalledWith("/ingredients");
     });
+  });
 });

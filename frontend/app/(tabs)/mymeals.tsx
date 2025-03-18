@@ -153,7 +153,7 @@ export default function MyMealsScreen() {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#FF6B6B" />
+          <ActivityIndicator testID="loading-indicator" size="large" color="#FF6B6B" />
           <Text style={styles.loadingText}>Loading saved recipes...</Text>
         </View>
       </SafeAreaView>
@@ -220,6 +220,7 @@ export default function MyMealsScreen() {
                     <Text style={styles.viewButtonText}>View Full Recipe</Text>
                   </TouchableOpacity>
                   <TouchableOpacity 
+                    testID="remove-button" // Added testID for the remove button
                     style={styles.removeButton}
                     onPress={() => handleRemoveRecipe(recipe)}
                   >

@@ -38,9 +38,9 @@ export default function LoginScreen() {
     }
 
     try {
-      const formData = new FormData()
-      formData.append("email", email)
-      formData.append("password", password)
+      const formData = new FormData();
+      formData.append("email", email);
+      formData.append("password", password);
 
       const response = await fetch("https://seng401.devweeny.ca/login", {
         method: "POST",
@@ -48,21 +48,21 @@ export default function LoginScreen() {
         headers: {
           Accept: "application/json",
         },
-      })
+      });
 
-      const data = await response.json()
+      const data = await response.json();
 
       if (response.ok) {
-        await AsyncStorage.setItem("loggedIn", "true")
-        await AsyncStorage.setItem("token", data["token"])
-        await AsyncStorage.setItem("user", JSON.stringify(data))
-        Alert.alert("Login Success", "You have successfully logged in!")
-        router.replace("/ingredients")
+        await AsyncStorage.setItem("loggedIn", "true");
+        await AsyncStorage.setItem("token", data["token"]);
+        await AsyncStorage.setItem("user", JSON.stringify(data));
+        Alert.alert("Login Success", "You have successfully logged in!");
+        router.replace("/ingredients");
       } else {
-        Alert.alert("Login Error", data.message || "Login failed")
+        Alert.alert("Login Error", data.message || "Invalid email or password");
       }
     } catch (error: any) {
-      Alert.alert("Network Error", error.message || "Network error occurred")
+      Alert.alert("Network Error", error.message || "Network error occurred");
     }
   }
 
@@ -147,7 +147,7 @@ export default function LoginScreen() {
 
         <Text style={styles.orText}>or</Text>
 
-        <TouchableOpacity style={styles.guestButton} onPress={handleGuest}>
+        <TouchableOpacity style={styles.guestButton} onPress={handleGuestLogin}>
           <Text style={styles.guestButtonText}>Continue as Guest</Text>
         </TouchableOpacity>
 
