@@ -82,7 +82,7 @@ describe("SwipeScreen", () => {
   // UT18 – FR15: Remove from Favorites
   it("Remove from Favorites", async () => {
     const { getByText, findByText } = render(<SwipeScreen />);
-    const removeButton = await findByText("Remove"); // Use findByText directly
+    const removeButton = await findByText("Remove");
     fireEvent.press(removeButton);
   
     await waitFor(() => {

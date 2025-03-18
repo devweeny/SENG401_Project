@@ -7,8 +7,13 @@ def test_search_recipes(client):
 
 # UT13 – Apply Restrictions to Search
 def test_search_with_restrictions(client):
-    response = client.get("/search?query=tofu&filter=vegan")
-    assert response.status_code == 200  # Adjust depending on actual endpoint logic
+    client.post("/register", data={"email": "filter@example.com", "name": "Filter User", "password": "123456"})
+    login_res = client.post("/login", data={"email": "filter@example.com", "password": "123456"})
+    token = login_res.json.get("access_token")
+    headers = {"Authorization": f"Bearer {token}"}
+
+    response = client.post("/generate", headers=headers, json={"ingredients": "tofu", "filter": "vegan"})
+    assert response.status_code == 200
 
 # UT14 – Recipe Recommendation from Ingredients
 def test_recipe_recommendations(client):
@@ -17,5 +22,5 @@ def test_recipe_recommendations(client):
     token = login_res.json.get("access_token")
     headers = {"Authorization": f"Bearer {token}"}
 
-    response = client.post("/recommend", headers=headers, json={"ingredients": ["tomato", "rice"]})
+    response = client.post("/generate", headers=headers, json={"ingredients": ["tomato", "rice"]})
     assert response.status_code == 200
