@@ -1,5 +1,3 @@
-"use client";
-
 import React, { useState, useEffect } from "react";
 import {
   View,
@@ -123,20 +121,14 @@ export default function ProfileScreen() {
             "Content-Type": "application/json",
             Authorization: `Bearer ${await AsyncStorage.getItem("token")}`,
           },
-          body: JSON.stringify({
-            name: name,
-            email: email,
-            dietaryPreferences: dietaryPreferences,
-            password: password,
-          }),
+          body: JSON.stringify(updatedProfile),
         });
         if (!response.ok) {
           throw new Error("Failed to update profile on server");
         }
         const data = await response.json();
 
-        await AsyncStorage.setItem("loggedIn", "true");
-        await AsyncStorage.setItem("token", data["token"]);
+        // Save updated user data to AsyncStorage
         await AsyncStorage.setItem("user", JSON.stringify(data));
       } catch (error) {
         console.error("Failed to update profile on server:", error);
@@ -168,8 +160,7 @@ export default function ProfileScreen() {
         {/* Header */}
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Profile</Text>
-        </View>
-  
+        </View>  
         {/* Profile Container */}
         <View style={styles.profileContainer}>
           {/* Profile Picture Section */}

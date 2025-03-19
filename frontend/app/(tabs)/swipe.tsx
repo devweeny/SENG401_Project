@@ -39,6 +39,7 @@ export default function SwipeScreen() {
       if (loadedRecipes.length > 0) {
         setCurrentIndex(0);
         await AsyncStorage.removeItem("generatedRecipes");
+
       }
 
       // Load saved recipes
@@ -88,7 +89,6 @@ export default function SwipeScreen() {
   const swipeRight = async () => {
     if (currentIndex < recipes.length) {
       const recipe = recipes[currentIndex];
-  
       try {
         // Get the user token
         const token = await AsyncStorage.getItem('token'); 
@@ -126,13 +126,19 @@ export default function SwipeScreen() {
   
 
   const swipeLeft = () => {
-    Animated.timing(position, {
-      toValue: { x: -SCREEN_WIDTH - 100, y: 0 },
-      duration: 250,
-      useNativeDriver: false
-    }).start(() => {
-      nextCard();
-    });
+    if (currentIndex < recipes.length) {
+      const recipe = recipes[currentIndex];
+      console.log("Recipe discarded:", recipe.title);
+      Alert.alert("Discarded", "Recipe removed.");
+      
+      Animated.timing(position, {
+        toValue: { x: -SCREEN_WIDTH - 100, y: 0 },
+        duration: 250,
+        useNativeDriver: false
+      }).start(() => {
+        nextCard();
+      });
+    }
   };
 
   const nextCard = () => {
@@ -262,14 +268,14 @@ export default function SwipeScreen() {
           <Ionicons name="heart-outline" size={24} color="white" />
           <Text style={styles.likeButtonText}>Save</Text>
         </TouchableOpacity>
+        <TouchableOpacity style={styles.removeButton} onPress={() => Alert.alert("Removed", "Recipe deleted from favorites.")}>
+          <Ionicons name="trash-outline" size={24} color="white" />
+          <Text style={styles.removeButtonText}>Remove</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
 }
-
-const Text = ({ style, ...props }: { style?: any } & React.ComponentProps<typeof Animated.Text>) => {
-  return <Animated.Text style={[{ color: '#333' }, style]} {...props} />;
-};
 
 const styles = StyleSheet.create({
   container: {
@@ -458,5 +464,21 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
     fontWeight: '600',
+  },
+  removeButton: {
+    backgroundColor: '#FF6B6B',
+    paddingVertical: 15,
+    paddingHorizontal: 20,
+    borderRadius: 30,
+    width: '48%',
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'center',
+  },
+  removeButtonText: {
+    fontSize: 16,
+    color: 'white',
+    fontWeight: '600',
+    marginLeft: 5,
   },
 });
