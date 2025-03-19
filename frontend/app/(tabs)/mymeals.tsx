@@ -2,8 +2,10 @@
 import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, TextInput, ScrollView, ActivityIndicator, Modal } from "react-native"
 import { router } from "expo-router"
 import { Ionicons } from "@expo/vector-icons"
-import React, { useState, useEffect } from "react"
+import React, { useEffect, useState } from "react"
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useFocusEffect } from "@react-navigation/native"
+import StarRating from 'react-native-star-rating-widget';
 
 // Define recipe type
 interface Recipe {
@@ -21,10 +23,13 @@ export default function MyMealsScreen() {
   const [activeTab, setActiveTab] = useState("favorites");
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
+  const [ratings, setRatings] = useState<{ [title: string]: number }>({});
 
-  useEffect(() => {
-    loadSavedRecipes();
-  }, []);
+  useFocusEffect(
+    React.useCallback(() => {
+      loadSavedRecipes();
+    }, [])
+  );
 
   useEffect(() => {
     // Filter recipes when search query changes
@@ -39,19 +44,94 @@ export default function MyMealsScreen() {
     }
   }, [searchQuery, savedRecipes]);
 
+
+  useEffect(() => {
+    const loadRatings = async () => {
+      try {
+        const savedRatings = await AsyncStorage.getItem('recipeRatings');
+        if (savedRatings) {
+          setRatings(JSON.parse(savedRatings));
+        }
+      } catch (error) {
+        console.error("Error loading ratings:", error);
+      }
+    };
+
+    loadRatings();
+  }, []); 
+
+  useEffect(() => {
+    const saveRatings = async () => {
+      try {
+        await AsyncStorage.setItem('recipeRatings', JSON.stringify(ratings));
+      } catch (error) {
+        console.error("Error saving ratings:", error);
+      }
+    };
+
+    saveRatings();
+  }, [ratings]);
+
   const loadSavedRecipes = async () => {
     try {
-      const savedJson = await AsyncStorage.getItem('likedRecipes');
+      setIsLoading(true);
+      
+      const token = await AsyncStorage.getItem("token"); // Retrieve JWT token if required
+      let recipes = [];
+  
+      const response = await fetch("https://seng401.devweeny.ca/get_recipes", {
+        //This needs to be changed to the appropriate backend link
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+  
+      if (response.ok) {
+        const data = await response.json();
+        recipes = data.recipes; // Ensure backend returns { recipes: [...] }
+        if (recipes[0].name !== null) {
+          recipes = recipes.map((recipe: any) => {
+            return {
+              title: recipe.name,
+              ingredients: recipe.ingredients,
+              instructions: recipe.instructions,
+              source: recipe.source,
+            };
+          });
+        }
+        await AsyncStorage.setItem("likedRecipes", JSON.stringify(recipes)); // Save to local storage
+      } else {
+        console.warn("Failed to fetch from backend, falling back to local storage.");
+        const savedJson = await AsyncStorage.getItem("likedRecipes");
+        if (savedJson) {
+          recipes = JSON.parse(savedJson);
+        }
+      }
+  
+      setSavedRecipes(recipes);
+      setFilteredRecipes(recipes);
+    } catch (error) {
+      console.error("Error loading saved recipes:", error);
+      // If an error occurs, still attempt to load from local storage
+      const savedJson = await AsyncStorage.getItem("likedRecipes");
       if (savedJson) {
         const recipes = JSON.parse(savedJson);
         setSavedRecipes(recipes);
         setFilteredRecipes(recipes);
       }
-    } catch (error) {
-      console.error("Error loading saved recipes:", error);
     } finally {
       setIsLoading(false);
     }
+  };
+
+
+  const handleRatingChange = (title: string, rating: number) => {
+    setRatings(prevRatings => ({
+      ...prevRatings,
+      [title]: rating,
+    }));
   };
 
   const handleRemoveRecipe = async (recipeToRemove: Recipe) => {
@@ -122,6 +202,15 @@ export default function MyMealsScreen() {
                 {recipe.ingredients.length > 3 && (
                   <Text style={styles.moreText}>+{recipe.ingredients.length - 3} more ingredients</Text>
                 )}
+
+                {/* Star Rating */}
+                <StarRating
+                  rating={ratings[recipe.title] || 0} // Default to 0 if no rating exists
+                  onChange={(rating) => handleRatingChange(recipe.title, rating)}
+                  maxStars={5}
+                  starSize={20}
+                  color="#FFD700" // Gold color for stars
+                />
                 
                 <View style={styles.recipeActions}>
                   <TouchableOpacity 

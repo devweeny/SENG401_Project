@@ -9,8 +9,34 @@ export default function LoginScreen() {
   const router = useRouter()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [errors, setErrors] = useState<{email?: string; password?: string}>({})
+
+  const validateForm = () => {
+    const newErrors: {email?: string; password?: string} = {}
+    
+    // Email validation
+    if (!email) {
+      newErrors.email = "Email is required"
+    } else if (!/\S+@\S+\.\S+/.test(email)) {
+      newErrors.email = "Please enter a valid email"
+    }
+    
+    // Password validation
+    if (!password) {
+      newErrors.password = "Password is required"
+    } else if (password.length < 3) {
+      newErrors.password = "Password must be at least 3 characters"
+    }
+    
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
 
   const handleLogin = async () => {
+    if (!validateForm()) {
+      return
+    }
+
     try {
       const formData = new FormData();
       formData.append("email", email);
@@ -23,6 +49,7 @@ export default function LoginScreen() {
           Accept: "application/json",
         },
       });
+
 
       const data = await response.json();
 
@@ -42,18 +69,30 @@ export default function LoginScreen() {
 
   const handleGuest = async () => {
     try {
-      await AsyncStorage.setItem("loggedIn", "true"); 
-      await AsyncStorage.setItem("user", JSON.stringify({ guest: true })); 
+      const response = await fetch("https://seng401.devweeny.ca/guest", {
+        method: "GET",
+        headers: {
+          Accept: "application/json",
+        },
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        await AsyncStorage.setItem("loggedIn", "true");
+        await AsyncStorage.setItem("token", data["token"]);
+        await AsyncStorage.setItem("user", JSON.stringify(data));
+        router.replace("/ingredients");
+      } else {
+        alert(data.message || "Guest login failed, please try again or contact an administrator.");
+      }
+
       router.replace("/ingredients"); 
     } catch (error: any) {
       alert(error.message || "An error occurred while continuing as a guest.");
     }
   };
-
-  const handleGuestLogin = () => {
-    router.push("/ingredients"); // Ensure this is the correct path
-  };
-
+  
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.logoContainer}>
@@ -69,21 +108,33 @@ export default function LoginScreen() {
 
       <View style={styles.inputContainer}>
         <TextInput
-          style={styles.input}
+          style={[styles.input, errors.email ? styles.inputError : null]}
           placeholder="email@domain.com"
           value={email}
-          onChangeText={setEmail}
+          onChangeText={(text) => {
+            setEmail(text)
+            if (errors.email) {
+              setErrors({...errors, email: undefined})
+            }
+          }}
           autoCapitalize="none"
           keyboardType="email-address"
         />
+        {errors.email ? <Text style={styles.errorText}>{errors.email}</Text> : null}
 
         <TextInput
-          style={styles.input}
+          style={[styles.input, errors.password ? styles.inputError : null]}
           placeholder="Password"
           secureTextEntry
           value={password}
-          onChangeText={setPassword}
+          onChangeText={(text) => {
+            setPassword(text)
+            if (errors.password) {
+              setErrors({...errors, password: undefined})
+            }
+          }}
         />
+        {errors.password ? <Text style={styles.errorText}>{errors.password}</Text> : null}
 
         <TouchableOpacity style={styles.continueButton} onPress={handleLogin}>
           <Text style={styles.continueButtonText}>Log in</Text>
@@ -166,6 +217,16 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     fontSize: 16,
   },
+  inputError: {
+    borderColor: "#FF3B30",
+  },
+  errorText: {
+    color: "#FF3B30",
+    fontSize: 14,
+    marginTop: -10,
+    marginBottom: 10,
+    marginLeft: 5,
+  },
   continueButton: {
     backgroundColor: "#000000",
     borderRadius: 5,
@@ -233,4 +294,3 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
 })
-

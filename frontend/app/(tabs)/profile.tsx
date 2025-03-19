@@ -6,10 +6,13 @@ import {
   StyleSheet,
   SafeAreaView,
   TouchableOpacity,
+  ScrollView,
 } from "react-native";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as ImagePicker from "expo-image-picker";
+import { Image } from "react-native";
 
 export default function ProfileScreen() {
   const [userData, setUserData] = useState<{
@@ -27,6 +30,9 @@ export default function ProfileScreen() {
 
   //toggle form visibility to edit profile
   const [isEditing, setIsEditing] = useState(false);
+
+  // state var to store profile pic URI
+  const [profilePicture, setProfilePicture] = useState<string | null>(null);
 
   const loadUserData = async () => {
     try {
@@ -66,6 +72,28 @@ export default function ProfileScreen() {
       router.replace("/login");
     } catch (error) {
       alert("Failed to log out. Please try again.");
+    }
+  };
+
+  const pickImage = async () => {
+    // Ask for permission to access the media library
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+  
+    if (!permissionResult.granted) {
+      alert("Permission to access the media library is required!");
+      return;
+    }
+  
+    // Open the image picker
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1], // Square aspect ratio
+      quality: 1, // High quality
+    });
+  
+    if (!result.canceled) {
+      setProfilePicture(result.assets[0].uri); // Save the selected image URI
     }
   };
 
@@ -128,92 +156,130 @@ export default function ProfileScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Profile</Text>
-      </View>
-
-      <View style={styles.profileContainer}>
-        <View style={styles.avatarContainer}>
-          <Ionicons name="person-circle" size={120} color="#FF6B6B" />
-        </View>
-
-        <View style={styles.infoContainer}>
-          {userData?.guest ? (
-            <Text style={styles.nameText}>Logged in as Guest</Text>
-          ) : (
-            <>
-              <Text style={styles.nameText}>{userData?.name || "User"}</Text>
-              <Text style={styles.emailText}>{userData?.email || ""}</Text>
-            </>
-          )}
-        </View>
-
-        <TouchableOpacity
-          style={styles.editButton}
-          onPress={() => setIsEditing(!isEditing)}
-        >
-          <Text style={styles.editButtonText}>
-            {isEditing ? "Cancel" : "Update Profile"}
-          </Text>
-        </TouchableOpacity>
-
-        {isEditing && (
-          <View style={styles.formContainer}>
-            <Text style={styles.formLabel}>Name</Text>
-            <TextInput
-              style={styles.formInput}
-              value={name}
-              onChangeText={setName}
-              placeholder="Enter new name" // Ensure this matches the test
-            />
-
-            <Text style={styles.formLabel}>Email</Text>
-            <TextInput
-              style={styles.formInput}
-              value={email}
-              onChangeText={setEmail}
-              placeholder="Enter new email"
-              keyboardType="email-address"
-            />
-
-            <Text style={styles.formLabel}>Password</Text>
-            <TextInput
-              style={styles.formInput}
-              value={password}
-              onChangeText={setPassword}
-              placeholder="Enter a new password"
-              secureTextEntry
-            />
-
-            <Text style={styles.formLabel}>Dietary Preferences</Text>
-            <TouchableOpacity
-              style={styles.preferenceButton}
-              onPress={() => toggleDietaryPreference("Vegetarian")}
-            >
-              <Text style={styles.preferenceButtonText}>
-                {dietaryPreferences.includes("Vegetarian")
-                  ? "Remove Vegetarian"
-                  : "Add Vegetarian"}
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.saveButton}
-              onPress={handleSaveProfile}
-            >
-              <Text style={styles.saveButtonText}>Save Changes</Text>
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        {/* Header */}
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Profile</Text>
+        </View>  
+        {/* Profile Container */}
+        <View style={styles.profileContainer}>
+          {/* Profile Picture Section */}
+          <View style={styles.avatarContainer}>
+            {profilePicture ? (
+              <Image source={{ uri: profilePicture }} style={styles.profileImage} />
+            ) : (
+              <Ionicons name="person-circle" size={120} color="#FF6B6B" />
+            )}
+  
+            <TouchableOpacity style={styles.changePfpButton} onPress={pickImage}>
+              <Text style={styles.changePfpButtonText}>Change Profile Picture</Text>
             </TouchableOpacity>
           </View>
-        )}
-
-        <View style={styles.separator} />
-
-        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-          <Text style={styles.logoutButtonText}>Logout</Text> {/* Changed from "Log Out" to "Logout" */}
-        </TouchableOpacity>
-
-        <Text style={styles.versionText}>MealMatcher v1.0.0</Text>
-      </View>
+  
+          {/* User Information */}
+          <View style={styles.infoContainer}>
+            {userData?.guest ? (
+              <Text style={styles.nameText}>Logged in as Guest</Text>
+            ) : (
+              <>
+                <Text style={styles.nameText}>{userData?.name || "User"}</Text>
+                <Text style={styles.emailText}>{userData?.email || ""}</Text>
+              </>
+            )}
+          </View>
+  
+          {/* Update Profile Button */}
+          <TouchableOpacity
+            style={styles.editButton}
+            onPress={() => setIsEditing(!isEditing)}
+          >
+            <Text style={styles.editButtonText}>
+              {isEditing ? "Cancel" : "Update Profile"}
+            </Text>
+          </TouchableOpacity>
+  
+          {/* Update Profile Form */}
+          {isEditing && (
+            <View style={styles.formContainer}>
+              <Text style={styles.formLabel}>Name</Text>
+              <TextInput
+                style={styles.formInput}
+                value={name}
+                onChangeText={setName}
+                placeholder="Enter new name"
+              />
+  
+              <Text style={styles.formLabel}>Email</Text>
+              <TextInput
+                style={styles.formInput}
+                value={email}
+                onChangeText={setEmail}
+                placeholder="Enter new email"
+                keyboardType="email-address"
+              />
+  
+              <Text style={styles.formLabel}>Password</Text>
+              <TextInput
+                style={styles.formInput}
+                value={password}
+                onChangeText={setPassword}
+                placeholder="Enter a new password"
+                secureTextEntry
+              />
+  
+              <Text style={styles.formLabel}>Dietary Preferences</Text>
+              <TouchableOpacity
+                style={styles.preferenceButton}
+                onPress={() => toggleDietaryPreference("Vegetarian")}
+              >
+                <Text style={styles.preferenceButtonText}>
+                  {dietaryPreferences.includes("Vegetarian")
+                    ? "Remove Vegetarian"
+                    : "Add Vegetarian"}
+                </Text>
+              </TouchableOpacity>
+  
+              <TouchableOpacity
+                style={styles.preferenceButton}
+                onPress={() => toggleDietaryPreference("Vegan")}
+              >
+                <Text style={styles.preferenceButtonText}>
+                  {dietaryPreferences.includes("Vegan") ? "Remove Vegan" : "Add Vegan"}
+                </Text>
+              </TouchableOpacity>
+  
+              <TouchableOpacity
+                style={styles.preferenceButton}
+                onPress={() => toggleDietaryPreference("Gluten-Free")}
+              >
+                <Text style={styles.preferenceButtonText}>
+                  {dietaryPreferences.includes("Gluten-Free")
+                    ? "Remove Gluten-Free"
+                    : "Add Gluten-Free"}
+                </Text>
+              </TouchableOpacity>
+  
+              <TouchableOpacity
+                style={styles.saveButton}
+                onPress={handleSaveProfile}
+              >
+                <Text style={styles.saveButtonText}>Save Changes</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+  
+          {/* Separator */}
+          <View style={styles.separator} />
+  
+          {/* Logout Button */}
+          <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+            <Text style={styles.logoutButtonText}>Log Out</Text>
+          </TouchableOpacity>
+  
+          {/* App Version */}
+          <Text style={styles.versionText}>MealMatcher v1.0.0</Text>
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -335,6 +401,27 @@ const styles = StyleSheet.create({
   editButtonText: {
     color: "white",
     fontSize: 16,
+    fontWeight: "bold",
+  },
+  scrollContainer: {
+    flexGrow: 1,
+    paddingBottom: 20,
+  },
+  profileImage: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    marginBottom: 10,
+  },
+  changePfpButton: {
+    backgroundColor: "#007BFF",
+    padding: 10,
+    borderRadius: 5,
+    alignItems: "center",
+  },
+  changePfpButtonText: {
+    color: "white",
+    fontSize: 14,
     fontWeight: "bold",
   },
 });

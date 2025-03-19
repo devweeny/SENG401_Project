@@ -1,9 +1,9 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { StyleSheet, Animated, PanResponder, View, Dimensions, TouchableOpacity, ActivityIndicator, ScrollView, Text, Alert } from 'react-native';
-import { useRouter } from 'expo-router';
+import React, { useState, useRef } from 'react';
+import { StyleSheet, Animated, PanResponder, View, Dimensions, TouchableOpacity, ActivityIndicator, ScrollView } from 'react-native';
+import { router } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from "@expo/vector-icons";
-import { act } from 'react-test-renderer';
+import { useFocusEffect } from '@react-navigation/native';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SWIPE_THRESHOLD = 120;
@@ -27,47 +27,40 @@ export default function SwipeScreen() {
     outputRange: ['-10deg', '0deg', '10deg'],
     extrapolate: 'clamp'
   });
-  const router = useRouter();
+  const loadData = async () => {
+    try {
+      // Load generated recipes
+      const recipesJson = await AsyncStorage.getItem("generatedRecipes");
+      let loadedRecipes: Recipe[] = recipesJson
+        ? JSON.parse(recipesJson)
+        : [];
 
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        // Load generated recipes
-        const recipesJson = await AsyncStorage.getItem('generatedRecipes');
-        let loadedRecipes: Recipe[] = [];
-        
-        if (recipesJson) {
-          loadedRecipes = JSON.parse(recipesJson);
-        }
-        
-        // If no recipes were loaded, show dummy data or redirect back
-        if (!loadedRecipes || loadedRecipes.length === 0) {
-          console.log("No recipes found, using fallback");
-          // Redirect back to ingredients
-          act(() => {
-            router.replace('/(tabs)/ingredients');
-          });
-          return;
-        }
-        
-        setRecipes(loadedRecipes);
-        
-        // Load saved recipes
-        const savedJson = await AsyncStorage.getItem('likedRecipes');
-        if (savedJson) {
-          setLikedRecipes(JSON.parse(savedJson));
-        }
-      } catch (error) {
-        console.error("Error loading recipes:", error);
-      } finally {
-        act(() => {
-          setIsLoading(false);
-        });
+      setRecipes(loadedRecipes);
+      if (loadedRecipes.length > 0) {
+        setCurrentIndex(0);
+        await AsyncStorage.removeItem("generatedRecipes");
+
       }
-    };
+
+      // Load saved recipes
+      const savedJson = await AsyncStorage.getItem("likedRecipes");
+      const savedRecipes: Recipe[] = savedJson
+        ? JSON.parse(savedJson)
+        : [];
+      setLikedRecipes(savedRecipes);
+    } catch (error) {
+      console.error("Error loading recipes:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useFocusEffect(
+    React.useCallback(() => {
+
     
-    loadData();
-  }, []);
+      loadData();
+    }, []));
 
   const panResponder = PanResponder.create({
     onStartShouldSetPanResponder: () => true,
@@ -93,24 +86,44 @@ export default function SwipeScreen() {
     }).start();
   };
 
-  const swipeRight = () => {
+  const swipeRight = async () => {
     if (currentIndex < recipes.length) {
       const recipe = recipes[currentIndex];
-      const newLikedRecipes = [...likedRecipes, recipe];
-      setLikedRecipes(newLikedRecipes);
-      AsyncStorage.setItem('likedRecipes', JSON.stringify(newLikedRecipes));
-      console.log("Recipe saved:", recipe.title);
-      Alert.alert("Saved", "Recipe added to favorites.");
-      
-      Animated.timing(position, {
-        toValue: { x: SCREEN_WIDTH + 100, y: 0 },
-        duration: 250,
-        useNativeDriver: false
-      }).start(() => {
-        nextCard();
-      });
+      try {
+        // Get the user token
+        const token = await AsyncStorage.getItem('token'); 
+  
+        // Send the liked recipe to the backend
+        const response = await fetch('https://seng401.devweeny.ca/add_recipe', { //This needs to be changed to the appropriate backend link
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(recipe),
+        });
+  
+        if (!response.ok) {
+          throw new Error('Failed to save recipe');
+        }
+  
+        const newLikedRecipes = [...likedRecipes, recipe];
+        setLikedRecipes(newLikedRecipes);
+        await AsyncStorage.setItem('likedRecipes', JSON.stringify(newLikedRecipes));
+  
+        Animated.timing(position, {
+          toValue: { x: SCREEN_WIDTH + 100, y: 0 },
+          duration: 250,
+          useNativeDriver: false,
+        }).start(() => {
+          nextCard();
+        });
+      } catch (error) {
+        console.error('Error saving recipe:', error);
+      }
     }
   };
+  
 
   const swipeLeft = () => {
     if (currentIndex < recipes.length) {
