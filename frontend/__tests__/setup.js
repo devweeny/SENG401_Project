@@ -11,4 +11,3 @@ jest.mock('react-native-safe-area-context', () => {
 
 global.alert = jest.fn(); // Mock the alert function
 
-

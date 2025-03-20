@@ -190,6 +190,7 @@ export default function IngredientsScreen() {
       router.push("/(tabs)/swipe");
     } catch (error) {
       console.error("Error generating recipes:", error);
+      // Ensure this alert is shown for errors during recipe generation
       Alert.alert("Error", "Something went wrong while getting recipes");
     } finally {
       setIsLoading(false);
@@ -232,7 +233,7 @@ export default function IngredientsScreen() {
           disabled={isLoading}
         >
           {isLoading ? (
-            <ActivityIndicator color="white" />
+            <ActivityIndicator testID="loading-indicator" color="white" />
           ) : (
             <Text style={styles.findButtonText}>Find Recipes</Text>
           )}

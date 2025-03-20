@@ -122,12 +122,14 @@ export default function MyMealsScreen() {
         const recipes = JSON.parse(savedJson);
         setSavedRecipes(recipes);
         setFilteredRecipes(recipes);
-      }
+      } 
     } finally {
       setIsLoading(false);
     }
   };
 
+  // Inside the render method
+  console.log("Filtered Recipes:", filteredRecipes); // Debugging log
 
   const handleRatingChange = (title: string, rating: number) => {
     setRatings(prevRatings => ({
@@ -136,15 +138,16 @@ export default function MyMealsScreen() {
     }));
   };
 
-  const handleRemoveRecipe = async (recipeToRemove: Recipe) => {
-    try {
-      const updatedRecipes = savedRecipes.filter(recipe => recipe.title !== recipeToRemove.title);
-      setSavedRecipes(updatedRecipes);
-      await AsyncStorage.setItem('likedRecipes', JSON.stringify(updatedRecipes));
-    } catch (error) {
-      console.error("Error removing recipe:", error);
-    }
-  };
+const handleRemoveRecipe = async (recipeToRemove: Recipe) => {
+  try {
+    const updatedRecipes = savedRecipes.filter(recipe => recipe.title !== recipeToRemove.title);
+    console.log('Updated Recipes:', updatedRecipes); // Debugging log
+    setSavedRecipes(updatedRecipes);
+    await AsyncStorage.setItem('likedRecipes', JSON.stringify(updatedRecipes));
+  } catch (error) {
+    console.error("Error removing recipe:", error);
+  }
+};
 
   const handleViewRecipe = (recipe: Recipe) => {
     setSelectedRecipe(recipe);
@@ -207,6 +210,7 @@ export default function MyMealsScreen() {
 
                 {/* Star Rating */}
                 <StarRating
+                  testID="star-rating-widget" // Added testID for testing
                   rating={ratings[recipe.title] || 0} // Default to 0 if no rating exists
                   onChange={(rating) => handleRatingChange(recipe.title, rating)}
                   maxStars={5}

@@ -62,7 +62,8 @@ export default function LoginScreen() {
         Alert.alert("Login Error", data.message || "Invalid email or password");
       }
     } catch (error: any) {
-      Alert.alert("Network Error", error.message || "Network error occurred");
+      const errorMessage = error?.message || "A network error occurred. Please check your connection and try again.";
+      Alert.alert("Network Error", errorMessage);
     }
   }
 

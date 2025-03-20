@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from '@react-navigation/native';
+import { Alert } from 'react-native';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SWIPE_THRESHOLD = 120;
@@ -88,6 +89,9 @@ export default function SwipeScreen() {
 
   const swipeRight = async () => {
     if (currentIndex < recipes.length) {
+      console.log("swipeRight called");
+      Alert.alert("Saved", "Recipe added to favorites.");
+    
       const recipe = recipes[currentIndex];
   
       try {
@@ -260,7 +264,11 @@ export default function SwipeScreen() {
       </View>
 
       <View style={styles.buttonsContainer}>
-        <TouchableOpacity style={styles.skipButton} onPress={swipeLeft}>
+        <TouchableOpacity
+          style={styles.skipButton}
+          onPress={swipeLeft}
+          testID="skipButton" // Added testID for testing
+        >
           <Ionicons name="close-outline" size={24} color="#666" />
           <Text style={styles.skipButtonText}>Skip</Text>
         </TouchableOpacity>
