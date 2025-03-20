@@ -8,7 +8,7 @@ import {
   TouchableOpacity,
   ScrollView,
 } from "react-native";
-import { router } from "expo-router";
+import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as ImagePicker from "expo-image-picker";
@@ -33,6 +33,8 @@ export default function ProfileScreen() {
 
   // state var to store profile pic URI
   const [profilePicture, setProfilePicture] = useState<string | null>(null);
+
+  const router = useRouter();
 
   const loadUserData = async () => {
     try {

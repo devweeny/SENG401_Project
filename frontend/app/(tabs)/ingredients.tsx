@@ -1,6 +1,6 @@
 import React, { useState } from "react"
 import { View, Text, TextInput, StyleSheet, SafeAreaView, TouchableOpacity, ActivityIndicator, Alert } from "react-native"
-import { router } from "expo-router"
+import { useRouter } from "expo-router"
 import { Ionicons } from "@expo/vector-icons"
 import AsyncStorage from "@react-native-async-storage/async-storage"
 
@@ -163,6 +163,8 @@ export default function IngredientsScreen() {
   const [ingredients, setIngredients] = useState("")
   const [recipe, setRecipe] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+
+  const router = useRouter();
 
   const handleFindRecipes = async () => {
     if (!ingredients.trim() && !recipe.trim()) {

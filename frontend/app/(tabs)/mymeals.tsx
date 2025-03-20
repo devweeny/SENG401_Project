@@ -1,6 +1,6 @@
 "use client"
 import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, TextInput, ScrollView, ActivityIndicator, Modal } from "react-native"
-import { router } from "expo-router"
+import { useRouter } from "expo-router"
 import { Ionicons } from "@expo/vector-icons"
 import React, { useEffect, useState } from "react"
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -24,6 +24,8 @@ export default function MyMealsScreen() {
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [ratings, setRatings] = useState<{ [title: string]: number }>({});
+
+  const router = useRouter();
 
   useFocusEffect(
     React.useCallback(() => {

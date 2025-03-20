@@ -147,7 +147,7 @@ export default function LoginScreen() {
 
         <Text style={styles.orText}>or</Text>
 
-        <TouchableOpacity style={styles.guestButton} onPress={handleGuestLogin}>
+        <TouchableOpacity style={styles.guestButton} onPress={handleGuest}>
           <Text style={styles.guestButtonText}>Continue as Guest</Text>
         </TouchableOpacity>
 

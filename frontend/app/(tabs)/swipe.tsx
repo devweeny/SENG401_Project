@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
-import { StyleSheet, Animated, PanResponder, View, Dimensions, TouchableOpacity, ActivityIndicator, ScrollView } from 'react-native';
-import { router } from 'expo-router';
+import { StyleSheet, Animated, PanResponder, View, Dimensions, TouchableOpacity, ActivityIndicator, ScrollView, Text } from 'react-native';
+import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from '@react-navigation/native';
@@ -27,6 +27,7 @@ export default function SwipeScreen() {
     outputRange: ['-10deg', '0deg', '10deg'],
     extrapolate: 'clamp'
   });
+  const router = useRouter();
   const loadData = async () => {
     try {
       // Load generated recipes
@@ -129,7 +130,6 @@ export default function SwipeScreen() {
     if (currentIndex < recipes.length) {
       const recipe = recipes[currentIndex];
       console.log("Recipe discarded:", recipe.title);
-      Alert.alert("Discarded", "Recipe removed.");
       
       Animated.timing(position, {
         toValue: { x: -SCREEN_WIDTH - 100, y: 0 },
@@ -268,10 +268,10 @@ export default function SwipeScreen() {
           <Ionicons name="heart-outline" size={24} color="white" />
           <Text style={styles.likeButtonText}>Save</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.removeButton} onPress={() => Alert.alert("Removed", "Recipe deleted from favorites.")}>
+        {/* <TouchableOpacity style={styles.removeButton} onPress={}>
           <Ionicons name="trash-outline" size={24} color="white" />
           <Text style={styles.removeButtonText}>Remove</Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
       </View>
     </View>
   );
