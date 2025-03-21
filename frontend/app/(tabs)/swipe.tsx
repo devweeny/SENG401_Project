@@ -12,6 +12,9 @@ const SWIPE_THRESHOLD = 120;
 // Define recipe type
 interface Recipe {
   title: string;
+  prepTime: string; 
+  cookTime: string;
+  difficulty: string;
   ingredients: string[];
   instructions: string[];
   source: string;
@@ -36,7 +39,8 @@ export default function SwipeScreen() {
       let loadedRecipes: Recipe[] = recipesJson
         ? JSON.parse(recipesJson)
         : [];
-
+      console.log("Recipes from storage:", loadedRecipes);
+      
       setRecipes(loadedRecipes);
       if (loadedRecipes.length > 0) {
         setCurrentIndex(0);
@@ -62,6 +66,13 @@ export default function SwipeScreen() {
     
       loadData();
     }, []));
+
+    useFocusEffect(
+      React.useCallback(() => {
+        loadData().then(() => console.log("Loaded recipes:", recipes));
+      }, [])
+    );
+    
 
   const panResponder = PanResponder.create({
     onStartShouldSetPanResponder: () => true,
@@ -233,6 +244,15 @@ export default function SwipeScreen() {
           </View>
           
           <ScrollView style={styles.recipeDetails}>
+            <View style = {styles.recipeInfo}>
+              <Text style={styles.recipeInfo}>Preparation Time: {recipe.prepTime}</Text>
+
+              <Text style={styles.recipeInfo}>Cooking Time:{recipe.cookTime}</Text>
+
+              <Text style={styles.recipeInfo}>Difficulty Level:{recipe.difficulty}</Text>
+            </View>
+            
+
             <Text style={styles.sectionTitle}>
               Ingredients:
             </Text>
@@ -371,6 +391,12 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     color: '#333',
   },
+  recipeInfo: {
+    fontSize: 16,
+    color: '#333',
+    marginBottom: 6,
+    fontStyle: 'italic',
+  },  
   ingredientsList: {
     marginBottom: 20,
   },

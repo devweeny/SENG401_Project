@@ -15,10 +15,17 @@ async def generate(ingredients: list):
     client = genai.Client(api_key=API_KEY)
     loop = asyncio.get_event_loop()
     response = await loop.run_in_executor(None, lambda: client.models.generate_content(
-        model='gemini-2.0-flash', contents="Give me 3 recipes using some of the following ingredients: " + ", ".join(ingredients) + ". Provide a source for the recipe. Return the result in a pure json format without any extra formatting. " + 
-        "Keep title, instructions, ingredients, and source as the different inputs. Do not escape any displays, do not format the output for readability. An example output would look as follows: {\"title\": \"Recipe Title\", \"instructions\": \"Recipe Instructions\", \"ingredients\": [\"ingredient1\", \"ingredient2\", \"ingredient3\"], \"source\": \"Recipe Source\"}"
+        model='gemini-2.0-flash', 
+        contents="Give me 3 recipes using some of the following ingredients: " + ", ".join(ingredients) + 
+        ". Provide a source for the recipe. Return the result in a pure json format without any extra formatting. " +
+        "Keep title, instructions, ingredients, source, preparation_time, cooking_time, and difficulty as the different inputs. " +
+        "The ingredients list should include precise measurements. " +
+        "Do not escape any displays, do not format the output for readability. An example output would look as follows: " +
+        "{\"title\": \"Recipe Title\", \"instructions\": \"Recipe Instructions\", \"ingredients\": " +
+        "[{\"name\": \"ingredient1\", \"quantity\": \"1 cup\"}, {\"name\": \"ingredient2\", \"quantity\": \"200g\"}], " +
+        "\"source\": \"Recipe Source\", \"preparation_time\": \"15 minutes\", \"cooking_time\": \"30 minutes\", \"difficulty\": \"Easy\"}"
     ))
-    # print(clean_json(response.text))
+    print(response.text)
     return clean_json(response.text)
 
 def clean_json(text):

@@ -20,6 +20,9 @@ const generateRecipe = async (ingredients: string) => {
         recipe: [
           {
             title: "Honey Yogurt Parfait",
+            prepTime: "15 min",
+            cookTime : "20 min",
+            difficulty :"Easy",
             ingredients: [
               "1 cup plain yogurt",
               "2 tablespoons honey",
@@ -35,6 +38,9 @@ const generateRecipe = async (ingredients: string) => {
           },
           {
             title: "Milk and Honey Smoothie",
+            prepTime: "15 min",
+            cookTime : "20 min",
+            difficulty :"Easy",
             ingredients: [
               "1 cup milk",
               "2 tablespoons honey",
@@ -50,6 +56,9 @@ const generateRecipe = async (ingredients: string) => {
           },
           {
             title: "Yogurt and Honey Face Mask",
+            prepTime: "15 min",
+            cookTime : "20 min",
+            difficulty :"Easy",
             ingredients: [
               "2 tablespoons plain yogurt",
               "1 tablespoon honey"
@@ -110,6 +119,10 @@ const generateRecipe = async (ingredients: string) => {
       recipe: [
         {
           title: "Honey Yogurt Parfait",
+          prepTime: "15 min",
+          cookTime : "20 min",
+          difficulty :"Easy",
+
           ingredients: [
             "1 cup plain yogurt",
             "2 tablespoons honey",
@@ -125,6 +138,9 @@ const generateRecipe = async (ingredients: string) => {
         },
         {
           title: "Milk and Honey Smoothie",
+          prepTime: "15 min",
+          cookTime : "20 min",
+          difficulty :"Easy",
           ingredients: [
             "1 cup milk",
             "2 tablespoons honey",
@@ -140,6 +156,9 @@ const generateRecipe = async (ingredients: string) => {
         },
         {
           title: "Honey Milk Tea",
+          prepTime: "15 min",
+          cookTime : "20 min",
+          difficulty :"Easy",
           ingredients: [
             "1 cup milk",
             "1 tea bag (black or green tea)",

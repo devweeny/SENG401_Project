@@ -21,9 +21,13 @@ CREATE TABLE recipes (
     name VARCHAR(255) NOT NULL,
     ingredients TEXT NOT NULL, -- Store ingredients as a JSON or comma-separated string
     instructions TEXT NOT NULL,
+    prep_time TEXT NOT NULL,
+    cook_time TEXT NOT NULL,
+    difficulty TEXT NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
+
 DROP TABLE IF EXISTS favorites;
 CREATE TABLE favorites (
     user_id VARCHAR(255) NOT NULL,

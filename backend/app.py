@@ -110,6 +110,9 @@ Response format:
             "title": "Recipe Title",
             "instructions": ["Instruction 1", "Instruction 2", ...],
             "ingredients": ["ingredient1", "ingredient2", "ingredient3", ...],
+            "preparation_time" : "15 min",
+            "cooking_time": "20 min",
+            "difficulty" : "Easy",
             "source": "Recipe Source"
         },
         ...
@@ -151,10 +154,13 @@ def add_recipe():
     source = data.get('source')
     ingredients = data.get('ingredients')
     instructions = data.get('instructions')
+    prepTime = data.get('preparation_time')
+    cookTime = data.get('cooking_time')
+    difficulty = data.get('difficulty')
 
-    app.logger.info(f"Adding recipe: '{name}', '{source}', '{ingredients}', '{instructions}'")
+    app.logger.info(f"Adding recipe: '{name}', '{source}', '{ingredients}', '{instructions}', '{prepTime}', '{cookTime}', '{difficulty}")
 
-    database.add_recipe(user_id, name, ingredients, instructions, source)
+    database.add_recipe(user_id, name, source, ingredients, instructions, prepTime, cookTime, difficulty)
     response = jsonify({"message": "Recipe added successfully"})
     return response, 200
 

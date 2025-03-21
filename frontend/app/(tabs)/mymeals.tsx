@@ -10,6 +10,9 @@ import StarRating from 'react-native-star-rating-widget';
 // Define recipe type
 interface Recipe {
   title: string;
+  prepTime: string; 
+  cookTime: string;
+  difficulty: string;
   ingredients: string[];
   instructions: string[];
   source: string;
@@ -97,6 +100,9 @@ export default function MyMealsScreen() {
           recipes = recipes.map((recipe: any) => {
             return {
               title: recipe.name,
+              prepTime: recipe.prepTime,
+              cookTime: recipe.cookTime,
+              difficulty: recipe.difficulty,
               ingredients: recipe.ingredients,
               instructions: recipe.instructions,
               source: recipe.source,
