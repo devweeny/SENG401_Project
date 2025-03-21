@@ -1,9 +1,10 @@
 import React, { useState, useRef } from 'react';
-import { StyleSheet, Animated, PanResponder, View, Dimensions, TouchableOpacity, ActivityIndicator, ScrollView } from 'react-native';
-import { router } from 'expo-router';
+import { StyleSheet, Animated, PanResponder, View, Dimensions, TouchableOpacity, ActivityIndicator, ScrollView, Text } from 'react-native';
+import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from '@react-navigation/native';
+import { Alert } from 'react-native';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SWIPE_THRESHOLD = 120;
@@ -30,6 +31,7 @@ export default function SwipeScreen() {
     outputRange: ['-10deg', '0deg', '10deg'],
     extrapolate: 'clamp'
   });
+  const router = useRouter();
   const loadData = async () => {
     try {
       // Load generated recipes
@@ -98,6 +100,9 @@ export default function SwipeScreen() {
 
   const swipeRight = async () => {
     if (currentIndex < recipes.length) {
+      console.log("swipeRight called");
+      Alert.alert("Saved", "Recipe added to favorites.");
+    
       const recipe = recipes[currentIndex];
   
       try {
@@ -137,13 +142,18 @@ export default function SwipeScreen() {
   
 
   const swipeLeft = () => {
-    Animated.timing(position, {
-      toValue: { x: -SCREEN_WIDTH - 100, y: 0 },
-      duration: 250,
-      useNativeDriver: false
-    }).start(() => {
-      nextCard();
-    });
+    if (currentIndex < recipes.length) {
+      const recipe = recipes[currentIndex];
+      console.log("Recipe discarded:", recipe.title);
+      
+      Animated.timing(position, {
+        toValue: { x: -SCREEN_WIDTH - 100, y: 0 },
+        duration: 250,
+        useNativeDriver: false
+      }).start(() => {
+        nextCard();
+      });
+    }
   };
 
   const nextCard = () => {
@@ -274,7 +284,11 @@ export default function SwipeScreen() {
       </View>
 
       <View style={styles.buttonsContainer}>
-        <TouchableOpacity style={styles.skipButton} onPress={swipeLeft}>
+        <TouchableOpacity
+          style={styles.skipButton}
+          onPress={swipeLeft}
+          testID="skipButton" // Added testID for testing
+        >
           <Ionicons name="close-outline" size={24} color="#666" />
           <Text style={styles.skipButtonText}>Skip</Text>
         </TouchableOpacity>
@@ -282,14 +296,14 @@ export default function SwipeScreen() {
           <Ionicons name="heart-outline" size={24} color="white" />
           <Text style={styles.likeButtonText}>Save</Text>
         </TouchableOpacity>
+        {/* <TouchableOpacity style={styles.removeButton} onPress={}>
+          <Ionicons name="trash-outline" size={24} color="white" />
+          <Text style={styles.removeButtonText}>Remove</Text>
+        </TouchableOpacity> */}
       </View>
     </View>
   );
 }
-
-const Text = ({ style, ...props }: { style?: any } & React.ComponentProps<typeof Animated.Text>) => {
-  return <Animated.Text style={[{ color: '#333' }, style]} {...props} />;
-};
 
 const styles = StyleSheet.create({
   container: {
@@ -484,5 +498,21 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
     fontWeight: '600',
+  },
+  removeButton: {
+    backgroundColor: '#FF6B6B',
+    paddingVertical: 15,
+    paddingHorizontal: 20,
+    borderRadius: 30,
+    width: '48%',
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'center',
+  },
+  removeButtonText: {
+    fontSize: 16,
+    color: 'white',
+    fontWeight: '600',
+    marginLeft: 5,
   },
 });

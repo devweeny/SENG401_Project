@@ -7,6 +7,7 @@ import database
 import gemini
 import asyncio
 import os
+import re
 
 app = Flask(__name__)
 cors = CORS(app)
@@ -51,12 +52,24 @@ def login():
     response.headers.add('Access-Control-Allow-Origin', '*')
     return response, 401
 
+def is_valid_email(email):
+    pattern = r"^[\w\.-]+@[\w\.-]+\.\w+$"
+    return re.match(pattern, email)
+
+def is_valid_password(password):
+    return len(password) >= 6
+
 @app.route("/register", methods=['POST'])
 def register():
     email = request.form['email']
     name = request.form['name']
     password = request.form['password']
 
+    if not is_valid_email(email):
+        return jsonify({"message": "Invalid email format"}), 400
+    
+    if not is_valid_password(password):
+        return jsonify({"message": "Password must be at least 6 characters long"}), 400
 
     if database.register(email, name, password):
         response = jsonify({"message": "You are registered"})
@@ -121,14 +134,14 @@ def generate():
 
     try:
         loop = asyncio.get_event_loop()
-    except RuntimeError:
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-    recipe = loop.run_until_complete(gemini.generate(ingredients))
-    response = jsonify({"recipe": recipe})
+        recipe = loop.run_until_complete(gemini.generate(ingredients, filter))
+        response = jsonify({"recipe": recipe})
+        return response, 200
+    except Exception as e:
+        print(f"Error generating recipe: {e}")
+        return jsonify({"message": f"An error occurred while generating the recipe: {e}"}), 500
 
-    return response, 200
-
+    
 @app.route("/add_recipe", methods=['POST'])
 @cross_origin()
 @jwt_required()
@@ -164,31 +177,101 @@ def get_recipes():
 @cross_origin()
 @jwt_required()
 def update_profile():
-    email = get_jwt_identity()
-    user_id = database.get_user_id(email)
+    try:
+        email = get_jwt_identity()
+        print(f"Authenticated user email: {email}")
+        user_id = database.get_user_id(email)
+        print(f"User ID: {user_id}")
+        data = request.get_json()
+        print(f"Request data: {data}")
+        
+        name = data.get('name')
+        email = data.get('email')
+        dietary_preferences = data.get('dietaryPreferences')
+        password = data.get('password')
+
+        print(f"Updating user with name: {name}, email: {email}, dietary_preferences: {dietary_preferences}, password: {password}")
+        updated_user = database.update_user(user_id, name, email, dietary_preferences, password)
+        print(f"Updated user: {updated_user}")
+
+        if updated_user:
+            token = create_access_token(identity=updated_user[1])
+            user_json = {
+                "id": updated_user[0],
+                "email": updated_user[1],
+                "name": updated_user[2],
+                "token": token,
+                "created_at": updated_user[4]
+            }
+            response = jsonify(user_json)
+            return response, 200
+        
+        response = jsonify({"message": "Failed to update profile"})
+        return response, 400
+    except Exception as e:
+        print(f"Error updating profile: {e}")
+        response = jsonify({"message": "An error occurred while updating the profile"})
+        return response, 500
+
+@app.route('/remove_recipe', methods=['POST'])
+@jwt_required()
+def remove_favorite():
+    user_id = get_jwt_identity()
     data = request.get_json()
-    
-    name = data.get('name')
-    email = data.get('email')
-    dietary_preferences = data.get('dietaryPreferences')
-    password = data.get('password')
+    recipe_id = data.get('recipe_id')
 
-    updated_user = database.update_user(user_id, name, email, dietary_preferences, password)
+    if not recipe_id:
+        return jsonify({"msg": "Missing recipe_id"}), 400
 
-    if updated_user:
-        token = create_access_token(identity=updated_user[1])
-        user_json = {
-            "id": updated_user[0],
-            "email": updated_user[1],
-            "name": updated_user[2],
-            "token": token,
-            "created_at": updated_user[4]
-        }
-        response = jsonify(user_json)
-        return response, 200
-    
-    response = jsonify({"message": "Failed to update profile"})
-    return response, 400
+    conn = database.get_connection()
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM favorites WHERE user_id = %s AND recipe_id = %s", (user_id, recipe_id))
+    conn.commit()
+    cursor.close()
+
+    return jsonify({"msg": "Recipe removed from favorites"}), 200
+
+@app.route('/ingredients', methods=['POST'])
+def add_ingredients():
+    data = request.json
+    # Process the ingredients data
+    return jsonify({"message": "Ingredients added successfully"}), 200
+
+
+@app.route("/rating", methods=['POST'])
+@cross_origin()
+@jwt_required()
+def submit_rating():
+    try:
+        email = get_jwt_identity()
+        print(f"Authenticated user email: {email}")
+        user_id = database.get_user_id(email)
+        print(f"User ID: {user_id}")
+        data = request.get_json()
+        print(f"Request data: {data}")
+        
+        recipe_id = data.get('recipe_id')
+        rating = data.get('rating')
+
+        if not recipe_id or not rating:
+            print("Missing recipe_id or rating")
+            return jsonify({"message": "Missing recipe_id or rating"}), 400
+
+        if not (1 <= rating <= 5):
+            print("Invalid rating value")
+            return jsonify({"message": "Rating must be between 1 and 5"}), 400
+
+        print(f"Submitting rating for recipe_id: {recipe_id} with rating: {rating}")
+        success = database.submit_rating(user_id, recipe_id, rating)
+        if success:
+            return jsonify({"message": "Rating submitted successfully"}), 200
+        else:
+            print("Failed to submit rating")
+            return jsonify({"message": "Failed to submit rating"}), 500
+    except Exception as e:
+        print(f"Error submitting rating: {e}")
+        return jsonify({"message": f"An error occurred while submitting the rating: {e}"}), 500
+
 
 if __name__ == "__main__":
     app.run(port=5000, debug=True, host='0.0.0.0')

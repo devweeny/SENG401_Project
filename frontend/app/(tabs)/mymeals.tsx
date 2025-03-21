@@ -1,10 +1,11 @@
 "use client"
 import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, TextInput, ScrollView, ActivityIndicator, Modal } from "react-native"
-import { router } from "expo-router"
+import { useRouter } from "expo-router"
 import { Ionicons } from "@expo/vector-icons"
 import React, { useEffect, useState } from "react"
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect } from "@react-navigation/native"
+import StarRating from 'react-native-star-rating-widget';
 
 // Define recipe type
 interface Recipe {
@@ -25,6 +26,9 @@ export default function MyMealsScreen() {
   const [activeTab, setActiveTab] = useState("favorites");
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
+  const [ratings, setRatings] = useState<{ [title: string]: number }>({});
+
+  const router = useRouter();
 
   useFocusEffect(
     React.useCallback(() => {
@@ -44,6 +48,34 @@ export default function MyMealsScreen() {
       setFilteredRecipes(savedRecipes);
     }
   }, [searchQuery, savedRecipes]);
+
+
+  useEffect(() => {
+    const loadRatings = async () => {
+      try {
+        const savedRatings = await AsyncStorage.getItem('recipeRatings');
+        if (savedRatings) {
+          setRatings(JSON.parse(savedRatings));
+        }
+      } catch (error) {
+        console.error("Error loading ratings:", error);
+      }
+    };
+
+    loadRatings();
+  }, []); 
+
+  useEffect(() => {
+    const saveRatings = async () => {
+      try {
+        await AsyncStorage.setItem('recipeRatings', JSON.stringify(ratings));
+      } catch (error) {
+        console.error("Error saving ratings:", error);
+      }
+    };
+
+    saveRatings();
+  }, [ratings]);
 
   const loadSavedRecipes = async () => {
     try {
@@ -96,21 +128,32 @@ export default function MyMealsScreen() {
         const recipes = JSON.parse(savedJson);
         setSavedRecipes(recipes);
         setFilteredRecipes(recipes);
-      }
+      } 
     } finally {
       setIsLoading(false);
     }
   };
-  
-  const handleRemoveRecipe = async (recipeToRemove: Recipe) => {
-    try {
-      const updatedRecipes = savedRecipes.filter(recipe => recipe.title !== recipeToRemove.title);
-      setSavedRecipes(updatedRecipes);
-      await AsyncStorage.setItem('likedRecipes', JSON.stringify(updatedRecipes));
-    } catch (error) {
-      console.error("Error removing recipe:", error);
-    }
+
+  // Inside the render method
+  console.log("Filtered Recipes:", filteredRecipes); // Debugging log
+
+  const handleRatingChange = (title: string, rating: number) => {
+    setRatings(prevRatings => ({
+      ...prevRatings,
+      [title]: rating,
+    }));
   };
+
+const handleRemoveRecipe = async (recipeToRemove: Recipe) => {
+  try {
+    const updatedRecipes = savedRecipes.filter(recipe => recipe.title !== recipeToRemove.title);
+    console.log('Updated Recipes:', updatedRecipes); // Debugging log
+    setSavedRecipes(updatedRecipes);
+    await AsyncStorage.setItem('likedRecipes', JSON.stringify(updatedRecipes));
+  } catch (error) {
+    console.error("Error removing recipe:", error);
+  }
+};
 
   const handleViewRecipe = (recipe: Recipe) => {
     setSelectedRecipe(recipe);
@@ -121,7 +164,7 @@ export default function MyMealsScreen() {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#FF6B6B" />
+          <ActivityIndicator testID="loading-indicator" size="large" color="#FF6B6B" />
           <Text style={styles.loadingText}>Loading saved recipes...</Text>
         </View>
       </SafeAreaView>
@@ -170,6 +213,16 @@ export default function MyMealsScreen() {
                 {recipe.ingredients.length > 3 && (
                   <Text style={styles.moreText}>+{recipe.ingredients.length - 3} more ingredients</Text>
                 )}
+
+                {/* Star Rating */}
+                <StarRating
+                  testID="star-rating-widget" // Added testID for testing
+                  rating={ratings[recipe.title] || 0} // Default to 0 if no rating exists
+                  onChange={(rating) => handleRatingChange(recipe.title, rating)}
+                  maxStars={5}
+                  starSize={20}
+                  color="#FFD700" // Gold color for stars
+                />
                 
                 <View style={styles.recipeActions}>
                   <TouchableOpacity 
@@ -179,6 +232,7 @@ export default function MyMealsScreen() {
                     <Text style={styles.viewButtonText}>View Full Recipe</Text>
                   </TouchableOpacity>
                   <TouchableOpacity 
+                    testID="remove-button" // Added testID for the remove button
                     style={styles.removeButton}
                     onPress={() => handleRemoveRecipe(recipe)}
                   >

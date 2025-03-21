@@ -1,5 +1,3 @@
-"use client";
-
 import React, { useState, useEffect } from "react";
 import {
   View,
@@ -10,7 +8,7 @@ import {
   TouchableOpacity,
   ScrollView,
 } from "react-native";
-import { router } from "expo-router";
+import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as ImagePicker from "expo-image-picker";
@@ -36,6 +34,8 @@ export default function ProfileScreen() {
   // state var to store profile pic URI
   const [profilePicture, setProfilePicture] = useState<string | null>(null);
 
+  const router = useRouter();
+
   const loadUserData = async () => {
     try {
       // Check if logged in as guest
@@ -56,6 +56,7 @@ export default function ProfileScreen() {
       }
     } catch (error) {
       console.error("Error loading user data:", error);
+      alert("Failed to load user data. Defaulting to guest mode.");
       setUserData({ guest: true });
     } finally {
       setIsLoading(false);
@@ -78,24 +79,28 @@ export default function ProfileScreen() {
   };
 
   const pickImage = async () => {
-    // Ask for permission to access the media library
-    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-  
-    if (!permissionResult.granted) {
-      alert("Permission to access the media library is required!");
-      return;
-    }
-  
-    // Open the image picker
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [1, 1], // Square aspect ratio
-      quality: 1, // High quality
-    });
-  
-    if (!result.canceled) {
-      setProfilePicture(result.assets[0].uri); // Save the selected image URI
+    try {
+      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    
+      if (!permissionResult.granted) {
+        alert("Permission to access the media library is required!");
+        return;
+      }
+    
+      // Open the image picker
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1], // Square aspect ratio
+        quality: 1, // High quality
+      });
+    
+      if (!result.canceled) {
+        setProfilePicture(result.assets[0].uri); // Save the selected image URI
+      }
+    } catch (error) {
+      console.error("Error picking image:", error);
+      alert("Failed to pick an image. Please try again.");
     }
   };
 
@@ -109,6 +114,7 @@ export default function ProfileScreen() {
   };
 
   const handleSaveProfile = async () => {
+    console.log('handleSave called');
     try {
       const updatedProfile = {
         name,
@@ -123,23 +129,25 @@ export default function ProfileScreen() {
             "Content-Type": "application/json",
             Authorization: `Bearer ${await AsyncStorage.getItem("token")}`,
           },
-          body: JSON.stringify({
-            name: name,
-            email: email,
-            dietaryPreferences: dietaryPreferences,
-            password: password,
-          }),
+          body: JSON.stringify(updatedProfile),
         });
         if (!response.ok) {
           throw new Error("Failed to update profile on server");
         }
         const data = await response.json();
 
-        await AsyncStorage.setItem("loggedIn", "true");
-        await AsyncStorage.setItem("token", data["token"]);
-        await AsyncStorage.setItem("user", JSON.stringify(data));
+        // Save updated user data to AsyncStorage
+        await AsyncStorage.setItem(
+          "user",
+          JSON.stringify({
+            email: data.email || email, // Ensure email is saved
+            name: data.name || name,   // Ensure name is saved
+            dietaryPreferences: data.dietaryPreferences || dietaryPreferences,
+          })
+        );      
       } catch (error) {
         console.error("Failed to update profile on server:", error);
+        alert("Failed to update profile. Please try again."); // Show error alert
       }
       alert("Profile updated successfully!");
       loadUserData();
@@ -180,7 +188,11 @@ export default function ProfileScreen() {
               <Ionicons name="person-circle" size={120} color="#FF6B6B" />
             )}
   
-            <TouchableOpacity style={styles.changePfpButton} onPress={pickImage}>
+            <TouchableOpacity
+              style={styles.changePfpButton}
+              onPress={pickImage}
+              testID="changeProfilePictureButton" // Added testID
+            >
               <Text style={styles.changePfpButtonText}>Change Profile Picture</Text>
             </TouchableOpacity>
           </View>

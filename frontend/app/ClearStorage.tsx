@@ -12,6 +12,7 @@ export default function ClearStorage() {
       alert('Storage cleared! App will restart');
       router.replace('/');
     } catch (e) {
+      console.error(e);
       alert('Failed to clear storage');
     }
   };
