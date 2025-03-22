@@ -26,7 +26,7 @@ function RootLayoutNav() {
   useEffect(() => {
     if (isLoggedIn === null) return
 
-    const inAuthGroup = segments[0] === "(auth)"
+    const inAuthGroup = segments[0] === "login" || segments[0] === "register"
 
     if (isLoggedIn && inAuthGroup) {
       router.replace("/ingredients")
