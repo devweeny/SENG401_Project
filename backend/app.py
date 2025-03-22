@@ -42,7 +42,9 @@ def login():
             "email": user[1],
             "name": user[2],
             "token": token,
-            "created_at": user[4]
+            "created_at": user[4],
+            "dietaryPreferences": user[5].split("@")
+
         }
         response = jsonify(user_json)
         response.headers.add('Access-Control-Allow-Origin', '*')
@@ -110,8 +112,8 @@ Response format:
             "title": "Recipe Title",
             "instructions": ["Instruction 1", "Instruction 2", ...],
             "ingredients": ["ingredient1", "ingredient2", "ingredient3", ...],
-            "preparation_time" : "15 min",
-            "cooking_time": "20 min",
+            "prepTime" : "15 min",
+            "cookTime": "20 min",
             "difficulty" : "Easy",
             "source": "Recipe Source"
         },
@@ -128,13 +130,15 @@ def generate():
     ingredients = request.form.get('ingredients').strip().split(",")
     email = get_jwt_identity()
     user_id = database.get_user_id(email)
+    dietary_preferences = database.get_dietary_preferences(user_id)
     if not user_id or not email:
         response = jsonify({"message": "Invalid user"})
         return response, 401
 
     try:
-        loop = asyncio.get_event_loop()
-        recipe = loop.run_until_complete(gemini.generate(ingredients, filter))
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        recipe = loop.run_until_complete(gemini.generate(ingredients, dietary_preferences))
         response = jsonify({"recipe": recipe})
         return response, 200
     except Exception as e:
@@ -154,13 +158,13 @@ def add_recipe():
     source = data.get('source')
     ingredients = data.get('ingredients')
     instructions = data.get('instructions')
-    prepTime = data.get('preparation_time')
-    cookTime = data.get('cooking_time')
+    prepTime = data.get('prepTime')
+    cookTime = data.get('cookTime')
     difficulty = data.get('difficulty')
 
     app.logger.info(f"Adding recipe: '{name}', '{source}', '{ingredients}', '{instructions}', '{prepTime}', '{cookTime}', '{difficulty}")
 
-    database.add_recipe(user_id, name, source, ingredients, instructions, prepTime, cookTime, difficulty)
+    database.add_recipe(user_id, name, ingredients, instructions, source, prepTime, cookTime, difficulty)
     response = jsonify({"message": "Recipe added successfully"})
     return response, 200
 
@@ -187,7 +191,7 @@ def update_profile():
         
         name = data.get('name')
         email = data.get('email')
-        dietary_preferences = data.get('dietaryPreferences')
+        dietary_preferences = "@".join(data.get('dietaryPreferences'))
         password = data.get('password')
 
         print(f"Updating user with name: {name}, email: {email}, dietary_preferences: {dietary_preferences}, password: {password}")
@@ -201,7 +205,8 @@ def update_profile():
                 "email": updated_user[1],
                 "name": updated_user[2],
                 "token": token,
-                "created_at": updated_user[4]
+                "created_at": updated_user[4],
+                "dietaryPreferences": updated_user[5].split("@") if updated_user[5] else []
             }
             response = jsonify(user_json)
             return response, 200

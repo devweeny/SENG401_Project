@@ -62,9 +62,9 @@ def get_recipes(user_id):
     for recipe in recipes:
         recipe["ingredients"] = recipe["ingredients"].split("@")
         recipe["instructions"] = recipe["instructions"].split("@")
-        recipe["preparation_time"] = recipe["preparation_time"].split("@")
-        recipe["cooking_time"] = recipe["cooking_time"].split("@")
         recipe["difficulty"] = recipe["difficulty"].split("@")
+        recipe["prepTime"] = recipe["prep_time"]
+        recipe["cookTime"] = recipe["cook_time"]
     cursor.close()
     return recipes
 
@@ -76,8 +76,6 @@ def update_user(user_id, name, email, dietary_preferences, password):
         name = None
     if email is not None and len(email) == 0:
         email = None
-    if dietary_preferences is not None and len(dietary_preferences) == 0:
-        dietary_preferences = None
     if password is not None and len(password) == 0:
         password = None
 
@@ -85,8 +83,7 @@ def update_user(user_id, name, email, dietary_preferences, password):
         cursor.execute("UPDATE users SET name = %s WHERE user_id = %s", (name, user_id))
     if email is not None:
         cursor.execute("UPDATE users SET email = %s WHERE user_id = %s", (email, user_id))
-    if dietary_preferences is not None:
-        cursor.execute("UPDATE users SET dietary_preferences = %s WHERE user_id = %s", (dietary_preferences, user_id))
+    cursor.execute("UPDATE users SET dietary_preferences = %s WHERE user_id = %s", (dietary_preferences, user_id))
     if password is not None:
         hashedpw = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt())
         cursor.execute("UPDATE users SET password = %s WHERE user_id = %s", (hashedpw, user_id))
@@ -105,6 +102,14 @@ def get_user_id(email):
     user_id = cursor.fetchone()[0]
     cursor.close()
     return user_id
+
+def get_dietary_preferences(user_id):
+    cursor = get_connection().cursor()
+    cursor.execute("SELECT dietary_preferences FROM users WHERE user_id = %s", (user_id,))
+    dietary_preferences = cursor.fetchone()[0]
+    cursor.close()
+    dietary_preferences = dietary_preferences.split("@") if dietary_preferences is not None else []
+    return dietary_preferences
 
 
 def submit_rating(user_id, recipe_id, rating):

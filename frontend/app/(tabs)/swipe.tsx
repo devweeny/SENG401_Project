@@ -52,6 +52,15 @@ export default function SwipeScreen() {
       const savedRecipes: Recipe[] = savedJson
         ? JSON.parse(savedJson)
         : [];
+      for (let i = 0; i < savedRecipes.length; i++) {
+        if (!savedRecipes[i].title) savedRecipes[i].title = "Unknown Title";
+        if (!savedRecipes[i].prepTime) savedRecipes[i].prepTime = "N/A";
+        if (!savedRecipes[i].cookTime) savedRecipes[i].cookTime = "N/A";
+        if (!savedRecipes[i].difficulty) savedRecipes[i].difficulty = "N/A";
+        if (!savedRecipes[i].ingredients) savedRecipes[i].ingredients = ["No ingredients listed"];
+        if (!savedRecipes[i].instructions) savedRecipes[i].instructions = ["No instructions provided"];
+        if (!savedRecipes[i].source) savedRecipes[i].source = "Unknown Source";
+      }
       setLikedRecipes(savedRecipes);
     } catch (error) {
       console.error("Error loading recipes:", error);
@@ -200,7 +209,15 @@ export default function SwipeScreen() {
     );
   }
 
-  const recipe = recipes[currentIndex];
+  const recipe: Recipe = recipes[currentIndex] || {
+    title: "Unknown Title",
+    prepTime: "N/A",
+    cookTime: "N/A",
+    difficulty: "N/A",
+    ingredients: ["No ingredients listed"],
+    instructions: ["No instructions provided"],
+    source: "Unknown Source"
+  };
 
   return (
     <View style={styles.container}>
@@ -247,9 +264,9 @@ export default function SwipeScreen() {
             <View style = {styles.recipeInfo}>
               <Text style={styles.recipeInfo}>Preparation Time: {recipe.prepTime}</Text>
 
-              <Text style={styles.recipeInfo}>Cooking Time:{recipe.cookTime}</Text>
+              <Text style={styles.recipeInfo}>Cooking Time: {recipe.cookTime}</Text>
 
-              <Text style={styles.recipeInfo}>Difficulty Level:{recipe.difficulty}</Text>
+              <Text style={styles.recipeInfo}>Difficulty Level: {recipe.difficulty}</Text>
             </View>
             
 

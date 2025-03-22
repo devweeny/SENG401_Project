@@ -135,7 +135,7 @@ export default function MyMealsScreen() {
   };
 
   // Inside the render method
-  console.log("Filtered Recipes:", filteredRecipes); // Debugging log
+  // console.log("Filtered Recipes:", filteredRecipes); // Debugging log
 
   const handleRatingChange = (title: string, rating: number) => {
     setRatings(prevRatings => ({
@@ -147,7 +147,7 @@ export default function MyMealsScreen() {
 const handleRemoveRecipe = async (recipeToRemove: Recipe) => {
   try {
     const updatedRecipes = savedRecipes.filter(recipe => recipe.title !== recipeToRemove.title);
-    console.log('Updated Recipes:', updatedRecipes); // Debugging log
+    // console.log('Updated Recipes:', updatedRecipes); // Debugging log
     setSavedRecipes(updatedRecipes);
     await AsyncStorage.setItem('likedRecipes', JSON.stringify(updatedRecipes));
   } catch (error) {
@@ -178,22 +178,41 @@ const handleRemoveRecipe = async (recipeToRemove: Recipe) => {
       </View>
 
       <View style={styles.searchContainer}>
-        <Ionicons name="search" size={20} color="#888" style={styles.searchIcon} />
-        <TextInput 
-          style={styles.searchInput} 
-          placeholder="Search recipes or ingredients" 
+        <Ionicons
+          name="search"
+          size={20}
+          color="#888"
+          style={styles.searchIcon}
+        />
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Search recipes or ingredients"
           value={searchQuery}
           onChangeText={setSearchQuery}
         />
       </View>
 
       <View style={styles.tabContainer}>
-        <TouchableOpacity 
-          style={[styles.tabButton, activeTab === "favorites" && styles.activeTabButton]}
+        <TouchableOpacity
+          style={[
+            styles.tabButton,
+            activeTab === "favorites" && styles.activeTabButton,
+          ]}
           onPress={() => setActiveTab("favorites")}
         >
-          <Ionicons name="heart" size={20} color={activeTab === "favorites" ? "#FF6B6B" : "#000"} />
-          <Text style={[styles.tabText, activeTab === "favorites" && styles.activeTabText]}>Favorites</Text>
+          <Ionicons
+            name="heart"
+            size={20}
+            color={activeTab === "favorites" ? "#FF6B6B" : "#000"}
+          />
+          <Text
+            style={[
+              styles.tabText,
+              activeTab === "favorites" && styles.activeTabText,
+            ]}
+          >
+            Favorites
+          </Text>
         </TouchableOpacity>
       </View>
 
@@ -202,36 +221,58 @@ const handleRemoveRecipe = async (recipeToRemove: Recipe) => {
           filteredRecipes.map((recipe, index) => (
             <View key={index} style={styles.recipeCard}>
               <View style={styles.recipeHeader}>
-                <Text style={styles.recipeTitle}>{recipe.title}</Text>
+                <Text style={styles.recipeTitle}>
+                  {recipe.title || "No title"}
+                </Text>
               </View>
-              
+
               <View style={styles.recipeContent}>
+                <View style={styles.inlineContainer}>
+  <Text style={styles.boldText}>Prep Time: </Text>
+  <Text style={styles.inlineText}>10 minutes</Text>
+</View>
+
+<View style={styles.inlineContainer}>
+  <Text style={styles.boldText}>Cook Time: </Text>
+  <Text style={styles.inlineText}>30 minutes</Text>
+</View>
+
+<View style={styles.inlineContainer}>
+  <Text style={styles.boldText}>Difficulty: </Text>
+  <Text style={styles.inlineText}>Easy</Text>
+</View>
                 <Text style={styles.sectionTitle}>Ingredients:</Text>
                 {recipe.ingredients.slice(0, 3).map((ingredient, idx) => (
-                  <Text key={idx} style={styles.ingredientText}>• {ingredient}</Text>
+                  <Text key={idx} style={styles.ingredientText}>
+                    • {ingredient}
+                  </Text>
                 ))}
                 {recipe.ingredients.length > 3 && (
-                  <Text style={styles.moreText}>+{recipe.ingredients.length - 3} more ingredients</Text>
+                  <Text style={styles.moreText}>
+                    +{recipe.ingredients.length - 3} more ingredients
+                  </Text>
                 )}
 
                 {/* Star Rating */}
                 <StarRating
                   testID="star-rating-widget" // Added testID for testing
                   rating={ratings[recipe.title] || 0} // Default to 0 if no rating exists
-                  onChange={(rating) => handleRatingChange(recipe.title, rating)}
+                  onChange={(rating) =>
+                    handleRatingChange(recipe.title, rating)
+                  }
                   maxStars={5}
                   starSize={20}
                   color="#FFD700" // Gold color for stars
                 />
-                
+
                 <View style={styles.recipeActions}>
-                  <TouchableOpacity 
+                  <TouchableOpacity
                     style={styles.viewButton}
                     onPress={() => handleViewRecipe(recipe)}
                   >
                     <Text style={styles.viewButtonText}>View Full Recipe</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity 
+                  <TouchableOpacity
                     testID="remove-button" // Added testID for the remove button
                     style={styles.removeButton}
                     onPress={() => handleRemoveRecipe(recipe)}
@@ -246,11 +287,13 @@ const handleRemoveRecipe = async (recipeToRemove: Recipe) => {
           <View style={styles.emptyState}>
             <Ionicons name="heart-outline" size={60} color="#DDD" />
             <Text style={styles.emptyStateText}>
-              {searchQuery ? "No recipes match your search" : "No saved recipes yet"}
+              {searchQuery
+                ? "No recipes match your search"
+                : "No saved recipes yet"}
             </Text>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.findRecipesButton}
-              onPress={() => router.push('/(tabs)/ingredients')}
+              onPress={() => router.push("/(tabs)/ingredients")}
             >
               <Text style={styles.findRecipesButtonText}>Find Recipes</Text>
             </TouchableOpacity>
@@ -267,37 +310,52 @@ const handleRemoveRecipe = async (recipeToRemove: Recipe) => {
       >
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.closeButton}
               onPress={() => setModalVisible(false)}
             >
               <Ionicons name="close" size={24} color="#888" />
             </TouchableOpacity>
-            
+
             {selectedRecipe && (
               <ScrollView style={styles.modalScrollView}>
                 <Text style={styles.modalTitle}>{selectedRecipe.title}</Text>
-                
+
+                <View style={styles.inlineContainer}>
+                  <Text style={styles.boldText}>Prep Time: </Text>
+                  <Text style={styles.inlineText}>10 minutes</Text>
+                </View>
+
+                <View style={styles.inlineContainer}>
+                  <Text style={styles.boldText}>Cook Time: </Text>
+                  <Text style={styles.inlineText}>30 minutes</Text>
+                </View>
+
+                <View style={styles.inlineContainer}>
+                  <Text style={styles.boldText}>Difficulty: </Text>
+                  <Text style={styles.inlineText}>Easy</Text>
+                </View>
+
                 <Text style={styles.modalSectionTitle}>Ingredients:</Text>
                 {selectedRecipe.ingredients.map((ingredient, idx) => (
-                  <Text key={idx} style={styles.modalIngredientText}>• {ingredient}</Text>
+                  <Text key={idx} style={styles.modalIngredientText}>
+                    • {ingredient}
+                  </Text>
                 ))}
-                
+
                 <Text style={styles.modalSectionTitle}>Instructions:</Text>
                 {selectedRecipe.instructions.map((instruction, idx) => (
                   <Text key={idx} style={styles.modalInstructionText}>
                     {idx + 1}. {instruction}
                   </Text>
                 ))}
-                
-                <Text style={styles.modalSourceText}>Source: {selectedRecipe.source}</Text>
               </ScrollView>
             )}
           </View>
         </View>
       </Modal>
     </SafeAreaView>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
@@ -452,21 +510,21 @@ const styles = StyleSheet.create({
   // Modal styles
   modalContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
   modalContent: {
-    width: '90%',
-    height: '80%',
-    backgroundColor: 'white',
+    width: "90%",
+    height: "80%",
+    backgroundColor: "white",
     borderRadius: 20,
     padding: 20,
-    boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.25)',
+    boxShadow: "0px 2px 4px rgba(0, 0, 0, 0.25)",
     elevation: 5,
   },
   closeButton: {
-    alignSelf: 'flex-end',
+    alignSelf: "flex-end",
     padding: 5,
   },
   modalScrollView: {
@@ -475,17 +533,17 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: 24,
-    fontWeight: 'bold',
-    color: '#FF6B6B',
+    fontWeight: "bold",
+    color: "#FF6B6B",
     marginBottom: 20,
-    textAlign: 'center',
+    textAlign: "center",
   },
   modalSectionTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginTop: 15,
     marginBottom: 10,
-    color: '#333',
+    color: "#333",
   },
   modalIngredientText: {
     fontSize: 16,
@@ -500,9 +558,23 @@ const styles = StyleSheet.create({
   },
   modalSourceText: {
     fontSize: 14,
-    fontStyle: 'italic',
-    color: '#888',
+    fontStyle: "italic",
+    color: "#888",
     marginTop: 20,
     marginBottom: 30,
+  },
+  inlineContainer: {
+    flexDirection: "row", 
+    alignItems: "center", 
+    marginBottom: 5, 
+  },
+  boldText: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#000",
+  },
+  inlineText: {
+    fontSize: 16,
+    color: "#555",
   },
 });

@@ -43,6 +43,7 @@ export default function ProfileScreen() {
       if (user) {
         const parsedUser = JSON.parse(user);
         setUserData(parsedUser);
+        setDietaryPreferences(parsedUser.dietaryPreferences || []);
       } else {
         // If no user data is found, check if a token exists (meaning they logged in but no profile info)
         const token = await AsyncStorage.getItem("token");
@@ -137,14 +138,8 @@ export default function ProfileScreen() {
         const data = await response.json();
 
         // Save updated user data to AsyncStorage
-        await AsyncStorage.setItem(
-          "user",
-          JSON.stringify({
-            email: data.email || email, // Ensure email is saved
-            name: data.name || name,   // Ensure name is saved
-            dietaryPreferences: data.dietaryPreferences || dietaryPreferences,
-          })
-        );      
+        await AsyncStorage.setItem("user", JSON.stringify(data));
+        
       } catch (error) {
         console.error("Failed to update profile on server:", error);
         alert("Failed to update profile. Please try again."); // Show error alert
