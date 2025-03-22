@@ -152,16 +152,6 @@ export default function LoginScreen() {
           <Text style={styles.guestButtonText}>Continue as Guest</Text>
         </TouchableOpacity>
 
-        {/* debug button, remove at some point */}
-        <View style={styles.debugContainer}>
-          <TouchableOpacity 
-          onPress={() => router.push('/ClearStorage')}
-          style={styles.debugButton}
-          >
-          <Text style={styles.debugButtonText}>Debug Tools</Text>
-        </TouchableOpacity>
-      </View>
-
 
       </View>
 
