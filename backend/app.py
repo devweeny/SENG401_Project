@@ -37,13 +37,18 @@ def login():
     user = database.login(email, password)
     if user:
         token = create_access_token(identity=user[1])
+        if user[5]:
+            dietary_preferences = user[5].split("@")
+        else:
+            dietary_preferences = []
+
         user_json = {
             "id": user[0],
             "email": user[1],
             "name": user[2],
             "token": token,
             "created_at": user[4],
-            "dietaryPreferences": user[5].split("@")
+            "dietaryPreferences": dietary_preferences
 
         }
         response = jsonify(user_json)
@@ -61,6 +66,7 @@ def is_valid_email(email):
 def is_valid_password(password):
     return len(password) >= 6
 
+@cross_origin()
 @app.route("/register", methods=['POST'])
 def register():
     email = request.form['email']
@@ -198,6 +204,11 @@ def update_profile():
         updated_user = database.update_user(user_id, name, email, dietary_preferences, password)
         print(f"Updated user: {updated_user}")
 
+        if updated_user[5]:
+            dietary_preferences = updated_user[5].split("@")
+        else:
+            dietary_preferences = []
+
         if updated_user:
             token = create_access_token(identity=updated_user[1])
             user_json = {
@@ -206,7 +217,7 @@ def update_profile():
                 "name": updated_user[2],
                 "token": token,
                 "created_at": updated_user[4],
-                "dietaryPreferences": updated_user[5].split("@") if updated_user[5] else []
+                "dietaryPreferences": dietary_preferences
             }
             response = jsonify(user_json)
             return response, 200
@@ -221,18 +232,15 @@ def update_profile():
 @app.route('/remove_recipe', methods=['POST'])
 @jwt_required()
 def remove_favorite():
-    user_id = get_jwt_identity()
+    user_id = database.get_user_id(get_jwt_identity())
+    
     data = request.get_json()
-    recipe_id = data.get('recipe_id')
+    recipe_name = data.get('recipe_name')
 
-    if not recipe_id:
-        return jsonify({"msg": "Missing recipe_id"}), 400
+    if not recipe_name:
+        return jsonify({"msg": "Missing recipe_name"}), 400
 
-    conn = database.get_connection()
-    cursor = conn.cursor()
-    cursor.execute("DELETE FROM favorites WHERE user_id = %s AND recipe_id = %s", (user_id, recipe_id))
-    conn.commit()
-    cursor.close()
+    database.remove_recipe(user_id, recipe_name)
 
     return jsonify({"msg": "Recipe removed from favorites"}), 200
 

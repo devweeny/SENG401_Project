@@ -54,6 +54,12 @@ def add_recipe(user_id, name, ingredients, instructions, source, prep_time, cook
     cursor.close()
     return recipe_id
 
+def remove_recipe(user_id, recipe_name):
+    cursor = get_connection().cursor()
+    cursor.execute("DELETE FROM recipes WHERE name = %s AND user_id = %s", (recipe_name, user_id))
+    conn.commit()
+    cursor.close()
+
 #This will retrieve all recipes for a specific user
 def get_recipes(user_id):
     cursor = get_connection().cursor(dictionary=True)

@@ -28,13 +28,6 @@ CREATE TABLE recipes (
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
 
-DROP TABLE IF EXISTS favorites;
-CREATE TABLE favorites (
-    user_id VARCHAR(255) NOT NULL,
-    recipe_id INT NOT NULL,
-    PRIMARY KEY (user_id, recipe_id)
-);
-
 DROP TABLE IF EXISTS ratings;
 -- Create ratings table
 CREATE TABLE ratings (

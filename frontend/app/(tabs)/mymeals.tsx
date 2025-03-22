@@ -96,7 +96,7 @@ export default function MyMealsScreen() {
       if (response.ok) {
         const data = await response.json();
         recipes = data.recipes; // Ensure backend returns { recipes: [...] }
-        if (recipes[0].name !== null) {
+        if (recipes[0].name) {
           recipes = recipes.map((recipe: any) => {
             return {
               title: recipe.name,
@@ -146,10 +146,26 @@ export default function MyMealsScreen() {
 
 const handleRemoveRecipe = async (recipeToRemove: Recipe) => {
   try {
-    const updatedRecipes = savedRecipes.filter(recipe => recipe.title !== recipeToRemove.title);
-    // console.log('Updated Recipes:', updatedRecipes); // Debugging log
+    const token = await AsyncStorage.getItem("token"); // Retrieve JWT token if required
+
+    const response = await fetch("https://seng401.devweeny.ca/remove_recipe", {
+      //This needs to be changed to the appropriate backend link
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({recipe_name: recipeToRemove.title}),
+    });
+
+    if (!response.ok) {
+      console.error("Failed to remove recipe from backend")
+      return;
+    }
+    const updatedRecipes = savedRecipes.filter((recipe) => recipe.title !== recipeToRemove.title);
+
     setSavedRecipes(updatedRecipes);
-    await AsyncStorage.setItem('likedRecipes', JSON.stringify(updatedRecipes));
+    await AsyncStorage.setItem("likedRecipes", JSON.stringify(updatedRecipes));
   } catch (error) {
     console.error("Error removing recipe:", error);
   }
